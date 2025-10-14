@@ -258,6 +258,44 @@ export class Hyros implements INodeType {
 							returnData.push(responseData);
 						}
 
+					} else if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+
+						// Format emails and IDs with quotes if provided
+						if (filters.emails) {
+							const emails = (filters.emails as string).split(',').map(e => e.trim());
+							qs.emails = emails.map(e => `"${e}"`).join(',');
+						}
+						if (filters.ids) {
+							const ids = (filters.ids as string).split(',').map(id => id.trim());
+							qs.ids = ids.map(id => `"${id}"`).join(',');
+						}
+						if (filters.fromDate) {
+							qs.fromDate = filters.fromDate;
+						}
+						if (filters.toDate) {
+							qs.toDate = filters.toDate;
+						}
+						if (filters.page) {
+							qs.page = filters.page;
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/leads', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							const limit = this.getNodeParameter('limit', i) as number;
+							qs.pageSize = limit;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/leads', {}, qs);
+							if (Array.isArray(responseData)) {
+								returnData.push(...responseData);
+							} else {
+								returnData.push(responseData);
+							}
+						}
+
 					} else if (operation === 'getJourney') {
 						const email = this.getNodeParameter('email', i) as string;
 						// First get the lead ID by email
