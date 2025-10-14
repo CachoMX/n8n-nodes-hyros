@@ -242,18 +242,40 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/lead', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/leads', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'get') {
 						const email = this.getNodeParameter('email', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/lead/${email}`);
-						returnData.push(responseData);
+						const qs: IDataObject = {
+							emails: `"${email}"`,
+						};
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads', {}, qs);
+						// API returns array, get first result
+						if (Array.isArray(responseData) && responseData.length > 0) {
+							returnData.push(responseData[0]);
+						} else {
+							returnData.push(responseData);
+						}
 
 					} else if (operation === 'getJourney') {
 						const email = this.getNodeParameter('email', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/lead/${email}/journey`);
-						returnData.push(responseData);
+						// First get the lead ID by email
+						const leadsQs: IDataObject = {
+							emails: `"${email}"`,
+						};
+						const leadsData = await hyrosApiRequest.call(this, 'GET', '/leads', {}, leadsQs);
+
+						if (Array.isArray(leadsData) && leadsData.length > 0 && leadsData[0].id) {
+							const leadId = leadsData[0].id;
+							const qs: IDataObject = {
+								ids: `"${leadId}"`,
+							};
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/journey', {}, qs);
+							returnData.push(responseData);
+						} else {
+							throw new NodeOperationError(this.getNode(), `Lead not found with email: ${email}`);
+						}
 					}
 
 				} else if (resource === 'sales') {
