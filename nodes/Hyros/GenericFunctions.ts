@@ -40,7 +40,7 @@ export async function hyrosApiRequest(
 	try {
 		return await this.helpers.httpRequest(options);
 	} catch (error) {
-		throw new NodeApiError(this.getNode(), error);
+		throw new NodeApiError(this.getNode(), error as any);
 	}
 }
 

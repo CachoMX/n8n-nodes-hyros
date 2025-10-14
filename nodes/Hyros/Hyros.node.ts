@@ -602,7 +602,8 @@ export class Hyros implements INodeType {
 
 			} catch (error) {
 				if (this.continueOnFail()) {
-					returnData.push({ error: error.message });
+					const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+					returnData.push({ error: errorMessage });
 					continue;
 				}
 				throw error;
