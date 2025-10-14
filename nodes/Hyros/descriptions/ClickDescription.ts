@@ -21,8 +21,8 @@ export const clickOperations: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				description: 'Get a click by ID',
-				action: 'Get a click',
+				description: 'Get clicks for a lead',
+				action: 'Get clicks',
 			},
 		],
 		default: 'create',
@@ -30,6 +30,7 @@ export const clickOperations: INodeProperties[] = [
 ];
 
 export const clickFields: INodeProperties[] = [
+	// Create Click (POST /clicks)
 	{
 		displayName: 'Email',
 		name: 'email',
@@ -44,19 +45,35 @@ export const clickFields: INodeProperties[] = [
 		default: '',
 		description: 'Email address of the user',
 	},
+	// Get Clicks (GET /leads/clicks with query params)
 	{
-		displayName: 'Click ID',
-		name: 'clickId',
-		type: 'string',
-		required: true,
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['click'],
 				operation: ['get'],
 			},
 		},
-		default: '',
-		description: 'Unique click identifier',
+		options: [
+			{
+				displayName: 'Lead ID',
+				name: 'leadId',
+				type: 'string',
+				default: '',
+				description: 'Filter by lead ID',
+			},
+			{
+				displayName: 'Email',
+				name: 'email',
+				type: 'string',
+				default: '',
+				description: 'Filter by email',
+			},
+		],
 	},
 	{
 		displayName: 'Additional Fields',

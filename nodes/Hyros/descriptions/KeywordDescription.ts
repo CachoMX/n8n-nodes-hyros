@@ -15,8 +15,8 @@ export const keywordOperations: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				description: 'Get keyword information',
-				action: 'Get a keyword',
+				description: 'Get keywords by ad group',
+				action: 'Get keywords',
 			},
 		],
 		default: 'get',
@@ -24,9 +24,10 @@ export const keywordOperations: INodeProperties[] = [
 ];
 
 export const keywordFields: INodeProperties[] = [
+	// Get Keywords (GET /keywords with query param)
 	{
-		displayName: 'Keyword ID',
-		name: 'keywordId',
+		displayName: 'Ad Group ID',
+		name: 'adgroupId',
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -36,6 +37,6 @@ export const keywordFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'The keyword identifier',
+		description: 'The ad group identifier',
 	},
 ];

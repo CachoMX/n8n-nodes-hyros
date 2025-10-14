@@ -39,7 +39,7 @@ export const orderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['order'],
-				operation: ['create', 'refund'],
+				operation: ['create'],
 			},
 		},
 		default: '',
@@ -53,7 +53,7 @@ export const orderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['order'],
-				operation: ['create', 'refund'],
+				operation: ['create'],
 			},
 		},
 		default: '',
@@ -269,7 +269,21 @@ export const orderFields: INodeProperties[] = [
 			},
 		],
 	},
-	// Refund Order
+	// Refund Order (DELETE /orders/{id})
+	{
+		displayName: 'Order ID',
+		name: 'orderId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['order'],
+				operation: ['refund'],
+			},
+		},
+		default: '',
+		description: 'Order ID to refund',
+	},
 	{
 		displayName: 'Additional Fields',
 		name: 'additionalFields',
@@ -284,25 +298,11 @@ export const orderFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Refund Amount',
-				name: 'refundAmount',
+				displayName: 'Refunded Amount',
+				name: 'refundedAmount',
 				type: 'number',
 				default: 0,
-				description: 'Refund amount (leave empty for full refund)',
-			},
-			{
-				displayName: 'Reason',
-				name: 'reason',
-				type: 'string',
-				default: '',
-				description: 'Reason for refund',
-			},
-			{
-				displayName: 'Timestamp',
-				name: 'timestamp',
-				type: 'dateTime',
-				default: '',
-				description: 'Refund timestamp (ISO 8601 format)',
+				description: 'Optional refunded amount',
 			},
 		],
 	},

@@ -15,8 +15,8 @@ export const subscriptionOperations: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				description: 'Get a subscription by ID',
-				action: 'Get a subscription',
+				description: 'Get subscriptions with optional filtering',
+				action: 'Get subscriptions',
 			},
 			{
 				name: 'Create',
@@ -27,8 +27,8 @@ export const subscriptionOperations: INodeProperties[] = [
 			{
 				name: 'Update',
 				value: 'update',
-				description: 'Update a subscription',
-				action: 'Update a subscription',
+				description: 'Update subscription(s)',
+				action: 'Update subscriptions',
 			},
 		],
 		default: 'create',
@@ -36,22 +36,58 @@ export const subscriptionOperations: INodeProperties[] = [
 ];
 
 export const subscriptionFields: INodeProperties[] = [
-	// Get Subscription
+	// Get Subscriptions (GET /subscriptions with query params)
 	{
-		displayName: 'Subscription ID',
-		name: 'subscriptionId',
-		type: 'string',
-		required: true,
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['subscription'],
-				operation: ['get', 'update'],
+				operation: ['get'],
 			},
 		},
-		default: '',
-		description: 'Unique subscription identifier',
+		options: [
+			{
+				displayName: 'IDs',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated subscription IDs',
+			},
+			{
+				displayName: 'Emails',
+				name: 'emails',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated emails',
+			},
+			{
+				displayName: 'Lead IDs',
+				name: 'leadIds',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated lead IDs',
+			},
+			{
+				displayName: 'From Date',
+				name: 'fromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Filter subscriptions from this date (ISO 8601 format)',
+			},
+			{
+				displayName: 'To Date',
+				name: 'toDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Filter subscriptions to this date (ISO 8601 format)',
+			},
+		],
 	},
-	// Create Subscription
+	// Create Subscription (POST /subscriptions)
 	{
 		displayName: 'Email',
 		name: 'email',
@@ -129,125 +165,25 @@ export const subscriptionFields: INodeProperties[] = [
 				description: 'Currency code (e.g., USD, EUR)',
 			},
 			{
-				displayName: 'Billing Interval',
-				name: 'billingInterval',
-				type: 'options',
-				options: [
-					{
-						name: 'Daily',
-						value: 'daily',
-					},
-					{
-						name: 'Weekly',
-						value: 'weekly',
-					},
-					{
-						name: 'Monthly',
-						value: 'monthly',
-					},
-					{
-						name: 'Quarterly',
-						value: 'quarterly',
-					},
-					{
-						name: 'Yearly',
-						value: 'yearly',
-					},
-				],
-				default: 'monthly',
-				description: 'Billing interval',
-			},
-			{
-				displayName: 'Trial Period Days',
-				name: 'trialPeriodDays',
-				type: 'number',
-				default: 0,
-				description: 'Number of trial days',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{
-						name: 'Active',
-						value: 'active',
-					},
-					{
-						name: 'Trialing',
-						value: 'trialing',
-					},
-					{
-						name: 'Past Due',
-						value: 'past_due',
-					},
-					{
-						name: 'Cancelled',
-						value: 'cancelled',
-					},
-					{
-						name: 'Unpaid',
-						value: 'unpaid',
-					},
-				],
-				default: 'active',
-				description: 'Subscription status',
-			},
-			{
-				displayName: 'Start Date',
-				name: 'startDate',
-				type: 'dateTime',
+				displayName: 'State',
+				name: 'state',
+				type: 'string',
 				default: '',
-				description: 'Subscription start date (ISO 8601 format)',
+				description: 'Subscription state',
 			},
 			{
-				displayName: 'Next Billing Date',
-				name: 'nextBillingDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Next billing date (ISO 8601 format)',
-			},
-			{
-				displayName: 'Cancel At Period End',
-				name: 'cancelAtPeriodEnd',
+				displayName: 'Is Cancelled',
+				name: 'isCancelled',
 				type: 'boolean',
 				default: false,
-				description: 'Whether subscription cancels at period end',
+				description: 'Whether subscription is cancelled',
 			},
 			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
+				displayName: 'Cancel Date',
+				name: 'cancelDate',
+				type: 'dateTime',
 				default: '',
-				description: 'Comma-separated list of tags',
-			},
-			{
-				displayName: 'Source',
-				name: 'source',
-				type: 'string',
-				default: '',
-				description: 'Traffic source',
-			},
-			{
-				displayName: 'HY ID',
-				name: 'hyId',
-				type: 'string',
-				default: '',
-				description: 'Hyros tracking ID',
-			},
-			{
-				displayName: 'Click ID',
-				name: 'clickId',
-				type: 'string',
-				default: '',
-				description: 'Click ID for attribution',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
+				description: 'Cancellation date (ISO 8601 format)',
 			},
 			{
 				displayName: 'Timestamp',
@@ -258,7 +194,7 @@ export const subscriptionFields: INodeProperties[] = [
 			},
 		],
 	},
-	// Update Subscription
+	// Update Subscriptions (PUT /subscriptions with body params)
 	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
@@ -273,75 +209,39 @@ export const subscriptionFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Amount',
-				name: 'amount',
-				type: 'number',
-				default: 0,
-				description: 'Subscription amount',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{
-						name: 'Active',
-						value: 'active',
-					},
-					{
-						name: 'Trialing',
-						value: 'trialing',
-					},
-					{
-						name: 'Past Due',
-						value: 'past_due',
-					},
-					{
-						name: 'Cancelled',
-						value: 'cancelled',
-					},
-					{
-						name: 'Unpaid',
-						value: 'unpaid',
-					},
-				],
-				default: 'active',
-				description: 'Subscription status',
-			},
-			{
-				displayName: 'Next Billing Date',
-				name: 'nextBillingDate',
-				type: 'dateTime',
+				displayName: 'IDs',
+				name: 'ids',
+				type: 'string',
 				default: '',
-				description: 'Next billing date (ISO 8601 format)',
+				description: 'Comma-separated subscription IDs to update',
 			},
 			{
-				displayName: 'Cancel At Period End',
-				name: 'cancelAtPeriodEnd',
+				displayName: 'Subscription Plan Name',
+				name: 'subscriptionPlanName',
+				type: 'string',
+				default: '',
+				description: 'Subscription plan name',
+			},
+			{
+				displayName: 'State',
+				name: 'state',
+				type: 'string',
+				default: '',
+				description: 'Subscription state',
+			},
+			{
+				displayName: 'Is Cancelled',
+				name: 'isCancelled',
 				type: 'boolean',
 				default: false,
-				description: 'Whether subscription cancels at period end',
+				description: 'Whether subscription is cancelled',
 			},
 			{
-				displayName: 'Cancelled At',
-				name: 'cancelledAt',
+				displayName: 'Cancel Date',
+				name: 'cancelDate',
 				type: 'dateTime',
 				default: '',
 				description: 'Cancellation date (ISO 8601 format)',
-			},
-			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
 			},
 		],
 	},

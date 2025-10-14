@@ -21,14 +21,14 @@ export const callOperations: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				description: 'Get a call by ID',
-				action: 'Get a call',
+				description: 'Get calls with optional filtering',
+				action: 'Get calls',
 			},
 			{
 				name: 'Update',
 				value: 'update',
-				description: 'Update a call',
-				action: 'Update a call',
+				description: 'Update call(s)',
+				action: 'Update calls',
 			},
 			{
 				name: 'Delete',
@@ -42,7 +42,7 @@ export const callOperations: INodeProperties[] = [
 ];
 
 export const callFields: INodeProperties[] = [
-	// Create Call
+	// Create Call (POST /calls)
 	{
 		displayName: 'Email',
 		name: 'email',
@@ -65,7 +65,7 @@ export const callFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['call'],
-				operation: ['create', 'get', 'update', 'delete'],
+				operation: ['create', 'delete'],
 			},
 		},
 		default: '',
@@ -99,113 +99,25 @@ export const callFields: INodeProperties[] = [
 				description: 'Call duration in seconds',
 			},
 			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{
-						name: 'Answered',
-						value: 'answered',
-					},
-					{
-						name: 'Missed',
-						value: 'missed',
-					},
-					{
-						name: 'Voicemail',
-						value: 'voicemail',
-					},
-					{
-						name: 'Busy',
-						value: 'busy',
-					},
-					{
-						name: 'Failed',
-						value: 'failed',
-					},
-				],
-				default: 'answered',
-				description: 'Call status',
-			},
-			{
-				displayName: 'Direction',
-				name: 'direction',
-				type: 'options',
-				options: [
-					{
-						name: 'Inbound',
-						value: 'inbound',
-					},
-					{
-						name: 'Outbound',
-						value: 'outbound',
-					},
-				],
-				default: 'inbound',
-				description: 'Call direction',
-			},
-			{
-				displayName: 'Recording URL',
-				name: 'recordingUrl',
+				displayName: 'Qualification',
+				name: 'qualification',
 				type: 'string',
 				default: '',
-				description: 'URL to the call recording',
+				description: 'Call qualification',
 			},
 			{
-				displayName: 'Notes',
-				name: 'notes',
+				displayName: 'State',
+				name: 'state',
 				type: 'string',
 				default: '',
-				description: 'Call notes',
+				description: 'Call state',
 			},
 			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags',
-			},
-			{
-				displayName: 'Source',
-				name: 'source',
-				type: 'string',
-				default: '',
-				description: 'Traffic source',
-			},
-			{
-				displayName: 'Campaign',
-				name: 'campaign',
-				type: 'string',
-				default: '',
-				description: 'Campaign name',
-			},
-			{
-				displayName: 'Value',
-				name: 'value',
-				type: 'number',
-				default: 0,
-				description: 'Monetary value of the call',
-			},
-			{
-				displayName: 'HY ID',
-				name: 'hyId',
-				type: 'string',
-				default: '',
-				description: 'Hyros tracking ID',
-			},
-			{
-				displayName: 'Click ID',
-				name: 'clickId',
-				type: 'string',
-				default: '',
-				description: 'Click ID for attribution',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
+				displayName: 'Qualified',
+				name: 'qualified',
+				type: 'boolean',
+				default: false,
+				description: 'Whether call is qualified',
 			},
 			{
 				displayName: 'Timestamp',
@@ -216,7 +128,51 @@ export const callFields: INodeProperties[] = [
 			},
 		],
 	},
-	// Update Call
+	// Get Calls (GET /calls with query params)
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['call'],
+				operation: ['get'],
+			},
+		},
+		options: [
+			{
+				displayName: 'IDs',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated call IDs',
+			},
+			{
+				displayName: 'Emails',
+				name: 'emails',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated emails',
+			},
+			{
+				displayName: 'Lead IDs',
+				name: 'leadIds',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated lead IDs',
+			},
+			{
+				displayName: 'Phone Numbers',
+				name: 'phoneNumbers',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated phone numbers',
+			},
+		],
+	},
+	// Update Calls (PUT /calls with query params)
 	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
@@ -231,82 +187,32 @@ export const callFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Phone Number',
-				name: 'phoneNumber',
+				displayName: 'IDs',
+				name: 'ids',
 				type: 'string',
 				default: '',
-				description: 'Phone number of the caller',
+				description: 'Comma-separated call IDs to update',
 			},
 			{
-				displayName: 'Duration',
-				name: 'duration',
-				type: 'number',
-				default: 0,
-				description: 'Call duration in seconds',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{
-						name: 'Answered',
-						value: 'answered',
-					},
-					{
-						name: 'Missed',
-						value: 'missed',
-					},
-					{
-						name: 'Voicemail',
-						value: 'voicemail',
-					},
-					{
-						name: 'Busy',
-						value: 'busy',
-					},
-					{
-						name: 'Failed',
-						value: 'failed',
-					},
-				],
-				default: 'answered',
-				description: 'Call status',
-			},
-			{
-				displayName: 'Recording URL',
-				name: 'recordingUrl',
+				displayName: 'Qualification',
+				name: 'qualification',
 				type: 'string',
 				default: '',
-				description: 'URL to the call recording',
+				description: 'Call qualification',
 			},
 			{
-				displayName: 'Notes',
-				name: 'notes',
+				displayName: 'State',
+				name: 'state',
 				type: 'string',
 				default: '',
-				description: 'Call notes',
+				description: 'Call state',
 			},
 			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags',
-			},
-			{
-				displayName: 'Value',
-				name: 'value',
-				type: 'number',
-				default: 0,
-				description: 'Monetary value of the call',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
+				displayName: 'Qualified',
+				name: 'qualified',
+				type: 'boolean',
+				default: false,
+				description: 'Whether call is qualified',
 			},
 		],
 	},

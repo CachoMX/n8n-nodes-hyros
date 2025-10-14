@@ -336,10 +336,27 @@ export class Hyros implements INodeType {
 						}
 
 					} else if (operation === 'update') {
-						const saleId = this.getNodeParameter('saleId', i) as string;
 						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						const qs: IDataObject = {};
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/sales/${saleId}`, updateFields);
+						// PUT /sales uses query parameters
+						if (updateFields.ids) {
+							qs.ids = updateFields.ids;
+						}
+						if (updateFields.isRecurringSale !== undefined) {
+							qs.isRecurringSale = updateFields.isRecurringSale;
+						}
+						if (updateFields.isRefunded !== undefined) {
+							qs.isRefunded = updateFields.isRefunded;
+						}
+						if (updateFields.refundedDate) {
+							qs.refundedDate = updateFields.refundedDate;
+						}
+						if (updateFields.refundedAmount !== undefined) {
+							qs.refundedAmount = updateFields.refundedAmount;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', '/sales', {}, qs);
 						returnData.push(responseData);
 
 					} else if (operation === 'delete') {
@@ -364,23 +381,20 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/order', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/orders', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'refund') {
-						const email = this.getNodeParameter('email', i) as string;
-						const orderNumber = this.getNodeParameter('orderNumber', i) as string;
-
-						const body: IDataObject = {
-							email,
-							orderNumber,
-						};
+						const orderId = this.getNodeParameter('orderId', i) as string;
+						const qs: IDataObject = {};
 
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
-						Object.assign(body, additionalFields);
+						if (additionalFields.refundedAmount) {
+							qs.refundedAmount = additionalFields.refundedAmount;
+						}
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/order/refund', body);
-						returnData.push(responseData);
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/orders/${orderId}`, {}, qs);
+						returnData.push({ success: true, orderId });
 					}
 
 				} else if (resource === 'call') {
@@ -397,24 +411,54 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/call', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/calls', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'get') {
-						const callId = this.getNodeParameter('callId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/call/${callId}`);
+						const qs: IDataObject = {};
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+
+						// GET /calls uses query parameters for filtering
+						if (filters.ids) {
+							qs.ids = filters.ids;
+						}
+						if (filters.emails) {
+							qs.emails = filters.emails;
+						}
+						if (filters.leadIds) {
+							qs.leadIds = filters.leadIds;
+						}
+						if (filters.phoneNumbers) {
+							qs.phoneNumbers = filters.phoneNumbers;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/calls', {}, qs);
 						returnData.push(responseData);
 
 					} else if (operation === 'update') {
-						const callId = this.getNodeParameter('callId', i) as string;
 						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						const qs: IDataObject = {};
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/call/${callId}`, updateFields);
+						// PUT /calls uses query parameters
+						if (updateFields.ids) {
+							qs.ids = updateFields.ids;
+						}
+						if (updateFields.qualification) {
+							qs.qualification = updateFields.qualification;
+						}
+						if (updateFields.state) {
+							qs.state = updateFields.state;
+						}
+						if (updateFields.qualified !== undefined) {
+							qs.qualified = updateFields.qualified;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', '/calls', {}, qs);
 						returnData.push(responseData);
 
 					} else if (operation === 'delete') {
 						const callId = this.getNodeParameter('callId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/call/${callId}`);
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/calls/${callId}`);
 						returnData.push({ success: true, callId });
 					}
 
@@ -489,7 +533,7 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/product', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/products', body);
 						returnData.push(responseData);
 					}
 
@@ -516,7 +560,7 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/source', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/sources', body);
 						returnData.push(responseData);
 					}
 
@@ -545,17 +589,21 @@ export class Hyros implements INodeType {
 				} else if (resource === 'customCost') {
 					// CUSTOM COST OPERATIONS
 					if (operation === 'create') {
-						const source = this.getNodeParameter('source', i) as string;
-						const date = this.getNodeParameter('date', i) as string;
+						const startDate = this.getNodeParameter('startDate', i) as string;
+						const endDate = this.getNodeParameter('endDate', i) as string;
+						const frequency = this.getNodeParameter('frequency', i) as string;
 						const cost = this.getNodeParameter('cost', i) as number;
+						const tags = this.getNodeParameter('tags', i) as string[];
 
 						const body: IDataObject = {
-							source,
-							date,
+							startDate,
+							endDate,
+							frequency,
 							cost,
+							tags,
 						};
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-cost', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-costs', body);
 						returnData.push(responseData);
 					}
 
@@ -571,12 +619,22 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/click', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/clicks', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'get') {
-						const clickId = this.getNodeParameter('clickId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/click/${clickId}`);
+						const qs: IDataObject = {};
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+
+						// GET /leads/clicks uses query parameters (leadId or email)
+						if (filters.leadId) {
+							qs.leadId = filters.leadId;
+						}
+						if (filters.email) {
+							qs.email = filters.email;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/clicks', {}, qs);
 						returnData.push(responseData);
 					}
 
@@ -596,7 +654,7 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/cart', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/carts', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'update') {
@@ -604,13 +662,14 @@ export class Hyros implements INodeType {
 						const items = this.getNodeParameter('items', i) as IDataObject;
 
 						const body: IDataObject = {
+							cartId,
 							items: (items as any).item || [],
 						};
 
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/cart/${cartId}`, body);
+						const responseData = await hyrosApiRequest.call(this, 'PUT', '/carts', body);
 						returnData.push(responseData);
 					}
 
@@ -624,16 +683,38 @@ export class Hyros implements INodeType {
 				} else if (resource === 'keyword') {
 					// KEYWORD OPERATIONS
 					if (operation === 'get') {
-						const keywordId = this.getNodeParameter('keywordId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/keyword/${keywordId}`);
+						const adgroupId = this.getNodeParameter('adgroupId', i) as string;
+						const qs: IDataObject = {
+							adgroupId,
+						};
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/keywords', {}, qs);
 						returnData.push(responseData);
 					}
 
 				} else if (resource === 'subscription') {
 					// SUBSCRIPTION OPERATIONS
 					if (operation === 'get') {
-						const subscriptionId = this.getNodeParameter('subscriptionId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'GET', `/subscription/${subscriptionId}`);
+						const qs: IDataObject = {};
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+
+						// GET /subscriptions uses query parameters
+						if (filters.ids) {
+							qs.ids = filters.ids;
+						}
+						if (filters.emails) {
+							qs.emails = filters.emails;
+						}
+						if (filters.leadIds) {
+							qs.leadIds = filters.leadIds;
+						}
+						if (filters.fromDate) {
+							qs.fromDate = filters.fromDate;
+						}
+						if (filters.toDate) {
+							qs.toDate = filters.toDate;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/subscriptions', {}, qs);
 						returnData.push(responseData);
 
 					} else if (operation === 'create') {
@@ -648,14 +729,31 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						Object.assign(body, additionalFields);
 
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/subscription', body);
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/subscriptions', body);
 						returnData.push(responseData);
 
 					} else if (operation === 'update') {
-						const subscriptionId = this.getNodeParameter('subscriptionId', i) as string;
 						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						const body: IDataObject = {};
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/subscription/${subscriptionId}`, updateFields);
+						// PUT /subscriptions uses body parameter with ids array
+						if (updateFields.ids) {
+							body.ids = updateFields.ids;
+						}
+						if (updateFields.subscriptionPlanName) {
+							body.subscriptionPlanName = updateFields.subscriptionPlanName;
+						}
+						if (updateFields.state) {
+							body.state = updateFields.state;
+						}
+						if (updateFields.isCancelled !== undefined) {
+							body.isCancelled = updateFields.isCancelled;
+						}
+						if (updateFields.cancelDate) {
+							body.cancelDate = updateFields.cancelDate;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', '/subscriptions', body);
 						returnData.push(responseData);
 					}
 				}

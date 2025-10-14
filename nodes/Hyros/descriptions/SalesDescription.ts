@@ -139,21 +139,7 @@ export const salesFields: INodeProperties[] = [
 			},
 		],
 	},
-	// Update Sale
-	{
-		displayName: 'Sale ID',
-		name: 'saleId',
-		type: 'string',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['sales'],
-				operation: ['update', 'delete'],
-			},
-		},
-		default: '',
-		description: 'The ID of the sale to update or delete',
-	},
+	// Update Sale (PUT /sales with query params)
 	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
@@ -168,58 +154,55 @@ export const salesFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Amount',
-				name: 'amount',
-				type: 'number',
-				default: 0,
-				description: 'Sale amount',
-			},
-			{
-				displayName: 'Currency',
-				name: 'currency',
-				type: 'string',
-				default: 'USD',
-				description: 'Currency code (e.g., USD, EUR)',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{
-						name: 'Completed',
-						value: 'completed',
-					},
-					{
-						name: 'Pending',
-						value: 'pending',
-					},
-					{
-						name: 'Refunded',
-						value: 'refunded',
-					},
-					{
-						name: 'Cancelled',
-						value: 'cancelled',
-					},
-				],
-				default: 'completed',
-				description: 'Sale status',
-			},
-			{
-				displayName: 'Tags',
-				name: 'tags',
+				displayName: 'IDs',
+				name: 'ids',
 				type: 'string',
 				default: '',
-				description: 'Comma-separated list of tags',
+				description: 'Comma-separated sale IDs to update',
 			},
 			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
+				displayName: 'Is Recurring Sale',
+				name: 'isRecurringSale',
+				type: 'boolean',
+				default: false,
+				description: 'Whether this is a recurring sale',
+			},
+			{
+				displayName: 'Is Refunded',
+				name: 'isRefunded',
+				type: 'boolean',
+				default: false,
+				description: 'Whether this sale is refunded',
+			},
+			{
+				displayName: 'Refunded Date',
+				name: 'refundedDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Date when sale was refunded (ISO 8601 format)',
+			},
+			{
+				displayName: 'Refunded Amount',
+				name: 'refundedAmount',
+				type: 'number',
+				default: 0,
+				description: 'Amount refunded',
 			},
 		],
+	},
+	// Delete Sale
+	{
+		displayName: 'Sale ID',
+		name: 'saleId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['sales'],
+				operation: ['delete'],
+			},
+		},
+		default: '',
+		description: 'The ID of the sale to delete',
 	},
 ];

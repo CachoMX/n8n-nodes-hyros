@@ -24,23 +24,10 @@ export const customCostOperations: INodeProperties[] = [
 ];
 
 export const customCostFields: INodeProperties[] = [
+	// Create Custom Cost (POST /custom-costs)
 	{
-		displayName: 'Source',
-		name: 'source',
-		type: 'string',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['customCost'],
-				operation: ['create'],
-			},
-		},
-		default: '',
-		description: 'Source name for the custom cost',
-	},
-	{
-		displayName: 'Date',
-		name: 'date',
+		displayName: 'Start Date',
+		name: 'startDate',
 		type: 'dateTime',
 		required: true,
 		displayOptions: {
@@ -50,7 +37,53 @@ export const customCostFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Date for the cost entry (ISO 8601 format, YYYY-MM-DD)',
+		description: 'Start date for custom cost (ISO 8601 format)',
+	},
+	{
+		displayName: 'End Date',
+		name: 'endDate',
+		type: 'dateTime',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['customCost'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'End date for custom cost (ISO 8601 format)',
+	},
+	{
+		displayName: 'Frequency',
+		name: 'frequency',
+		type: 'options',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['customCost'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				name: 'Daily',
+				value: 'daily',
+			},
+			{
+				name: 'Weekly',
+				value: 'weekly',
+			},
+			{
+				name: 'Monthly',
+				value: 'monthly',
+			},
+			{
+				name: 'One Time',
+				value: 'one_time',
+			},
+		],
+		default: 'one_time',
+		description: 'Frequency of the custom cost',
 	},
 	{
 		displayName: 'Cost',
@@ -65,5 +98,22 @@ export const customCostFields: INodeProperties[] = [
 		},
 		default: 0,
 		description: 'Cost amount',
+	},
+	{
+		displayName: 'Tags',
+		name: 'tags',
+		type: 'string',
+		typeOptions: {
+			multipleValues: true,
+		},
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['customCost'],
+				operation: ['create'],
+			},
+		},
+		default: [],
+		description: 'Tags for attribution (max 20)',
 	},
 ];
