@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-hyros",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "n8n community node for Hyros API integration with complete endpoint coverage",
   "keywords": [
     "n8n",

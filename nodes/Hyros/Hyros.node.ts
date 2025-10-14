@@ -91,7 +91,7 @@ export class Hyros implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Hyros',
 		name: 'hyros',
-		icon: 'file:hyros.png',
+		icon: 'file:hyros.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
