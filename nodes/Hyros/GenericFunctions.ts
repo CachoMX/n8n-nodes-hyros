@@ -21,7 +21,7 @@ export async function hyrosApiRequest(
 		method,
 		body,
 		qs,
-		url: `${credentials.baseUrl}${endpoint}`,
+		url: `${credentials.baseUrl}/api/v1.0${endpoint}`,
 		headers: {
 			'API-Key': credentials.apiKey as string,
 			'Content-Type': 'application/json',

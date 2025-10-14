@@ -25,9 +25,9 @@ export class HyrosApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://api.hyros.com/v1',
+			default: 'https://api.hyros.com',
 			required: true,
-			description: 'The base URL for the Hyros API',
+			description: 'The base URL for the Hyros API (without /v1)',
 		},
 	];
 
@@ -43,7 +43,7 @@ export class HyrosApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/user',
+			url: '/api/v1.0/user-info',
 			method: 'GET',
 		},
 	};
