@@ -25,9 +25,9 @@ export class HyrosApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://api.hyros.com',
+			default: 'https://api.hyros.com/v1',
 			required: true,
-			description: 'The base URL for the Hyros API (without /v1)',
+			description: 'The base URL for the Hyros API',
 		},
 	];
 
