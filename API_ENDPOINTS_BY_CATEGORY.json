@@ -1,0 +1,1622 @@
+{
+  "apiInfo": {
+    "baseUrl": "https://api.hyros.com/v1",
+    "version": "1.31",
+    "authentication": {
+      "type": "API-Key",
+      "headerName": "API-Key",
+      "location": "header"
+    }
+  },
+  "categories": {
+    "leads": {
+      "description": "Manage leads and their journey",
+      "endpoints": [
+        {
+          "name": "Retrieve Leads",
+          "method": "GET",
+          "path": "/api/v1.0/leads",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50,
+              "description": "Array of lead ids"
+            },
+            "emails": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50,
+              "description": "Array of emails or email prefixes"
+            },
+            "fromDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601",
+              "description": "Filter leads from this date"
+            },
+            "toDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601",
+              "description": "Filter leads until this date"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 250,
+              "description": "Maximum results per page"
+            },
+            "pageId": {
+              "type": "string",
+              "required": false,
+              "description": "Next page ID for pagination"
+            }
+          },
+          "response": {
+            "result": "array",
+            "nextPageId": "string",
+            "request_id": "string"
+          }
+        },
+        {
+          "name": "Create Lead",
+          "method": "POST",
+          "path": "/api/v1.0/leads",
+          "bodyParameters": {
+            "email": {
+              "type": "string",
+              "required": false,
+              "description": "Lead email (required if no phoneNumbers)"
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "tags": {
+              "type": "array",
+              "required": false,
+              "description": "Tags to apply to lead"
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false,
+              "description": "IPs for ad attribution"
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false,
+              "description": "Phone numbers (required if no email)"
+            },
+            "stage": {
+              "type": "string",
+              "required": false,
+              "description": "Stage name to apply"
+            }
+          }
+        },
+        {
+          "name": "Retrieve Leads Journey",
+          "method": "GET",
+          "path": "/api/v1.0/leads/journey",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": true,
+              "description": "Array of lead IDs"
+            }
+          }
+        }
+      ]
+    },
+    "sales": {
+      "description": "Manage sales and revenue data",
+      "endpoints": [
+        {
+          "name": "Retrieve Sales",
+          "method": "GET",
+          "path": "/api/v1.0/sales",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "emails": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "leadIds": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "productTags": {
+              "type": "array",
+              "required": false,
+              "maxItems": 20
+            },
+            "isRecurringSale": {
+              "type": "string",
+              "required": false,
+              "enum": ["RECURRING", "NON_RECURRING", "ALL"],
+              "default": "ALL"
+            },
+            "saleRefundedState": {
+              "type": "string",
+              "required": false,
+              "enum": ["REFUNDED", "NON_REFUNDED", "ALL"],
+              "default": "ALL"
+            },
+            "fromDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "toDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        },
+        {
+          "name": "Update Sales",
+          "method": "PUT",
+          "path": "/api/v1.0/sales",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": true,
+              "maxItems": 50
+            },
+            "isRecurringSale": {
+              "type": "boolean",
+              "required": false
+            },
+            "isRefunded": {
+              "type": "boolean",
+              "required": false
+            },
+            "refundedDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "refundedAmount": {
+              "type": "string",
+              "required": false
+            }
+          }
+        },
+        {
+          "name": "Delete Sale",
+          "method": "DELETE",
+          "path": "/api/v1.0/sales/{id}",
+          "pathParameters": {
+            "id": {
+              "type": "string",
+              "required": true,
+              "description": "Sale ID to delete"
+            }
+          }
+        }
+      ]
+    },
+    "orders": {
+      "description": "Create and manage orders",
+      "endpoints": [
+        {
+          "name": "Create Order",
+          "method": "POST",
+          "path": "/api/v1.0/orders",
+          "bodyParameters": {
+            "email": {
+              "type": "string",
+              "required": false
+            },
+            "parentEmail": {
+              "type": "string",
+              "required": false
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false
+            },
+            "stage": {
+              "type": "string",
+              "required": false
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false
+            },
+            "orderId": {
+              "type": "string",
+              "required": false,
+              "pattern": "^[a-zA-Z0-9_\\-.:]+$"
+            },
+            "externalSubscriptionId": {
+              "type": "string",
+              "required": false
+            },
+            "cartId": {
+              "type": "string",
+              "required": false
+            },
+            "date": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "shippingCost": {
+              "type": "number",
+              "required": false,
+              "default": 0
+            },
+            "taxes": {
+              "type": "number",
+              "required": false,
+              "default": 0
+            },
+            "orderDiscount": {
+              "type": "number",
+              "required": false
+            },
+            "priceFormat": {
+              "type": "string",
+              "required": false,
+              "enum": ["DECIMAL", "INTEGER"],
+              "default": "DECIMAL"
+            },
+            "currency": {
+              "type": "string",
+              "required": false
+            },
+            "items": {
+              "type": "array",
+              "required": true,
+              "minItems": 1,
+              "items": {
+                "name": {
+                  "type": "string",
+                  "required": true
+                },
+                "price": {
+                  "type": "number",
+                  "required": true
+                },
+                "externalId": {
+                  "type": "string",
+                  "required": false
+                },
+                "quantity": {
+                  "type": "number",
+                  "required": false,
+                  "default": 1
+                },
+                "costOfGoods": {
+                  "type": "number",
+                  "required": false,
+                  "default": 0
+                },
+                "taxes": {
+                  "type": "number",
+                  "required": false,
+                  "default": 0
+                },
+                "itemDiscount": {
+                  "type": "number",
+                  "required": false
+                },
+                "packages": {
+                  "type": "array",
+                  "required": false
+                },
+                "tag": {
+                  "type": "string",
+                  "required": false
+                },
+                "categoryName": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refund Order",
+          "method": "DELETE",
+          "path": "/api/v1.0/orders/{id}",
+          "pathParameters": {
+            "id": {
+              "type": "string",
+              "required": true
+            }
+          },
+          "queryParameters": {
+            "refundedAmount": {
+              "type": "string",
+              "required": false
+            }
+          }
+        }
+      ]
+    },
+    "calls": {
+      "description": "Track and manage calls",
+      "endpoints": [
+        {
+          "name": "Retrieve Calls",
+          "method": "GET",
+          "path": "/api/v1.0/calls",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "emails": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "leadIds": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "productTags": {
+              "type": "array",
+              "required": false,
+              "maxItems": 20
+            },
+            "fromDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "toDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            },
+            "qualified": {
+              "type": "boolean",
+              "required": false
+            },
+            "qualificationStages": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "state": {
+              "type": "string",
+              "required": false,
+              "enum": ["QUALIFIED", "UNQUALIFIED", "CANCELLED", "NO_SHOW"]
+            }
+          }
+        },
+        {
+          "name": "Create Call",
+          "method": "POST",
+          "path": "/api/v1.0/calls",
+          "bodyParameters": {
+            "name": {
+              "type": "string",
+              "required": true
+            },
+            "email": {
+              "type": "string",
+              "required": true
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false
+            },
+            "stage": {
+              "type": "string",
+              "required": false
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false
+            },
+            "id": {
+              "type": "string",
+              "required": false
+            },
+            "date": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "qualified": {
+              "type": "boolean",
+              "required": false,
+              "deprecated": true
+            },
+            "qualification": {
+              "type": "string",
+              "required": false
+            },
+            "state": {
+              "type": "string",
+              "required": false,
+              "enum": ["QUALIFIED", "UNQUALIFIED", "CANCELLED", "NO_SHOW"]
+            }
+          }
+        },
+        {
+          "name": "Update Calls",
+          "method": "PUT",
+          "path": "/api/v1.0/calls",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": true,
+              "maxItems": 50
+            },
+            "qualification": {
+              "type": "string",
+              "required": false
+            },
+            "state": {
+              "type": "string",
+              "required": false,
+              "enum": ["QUALIFIED", "UNQUALIFIED", "CANCELLED", "NO_SHOW"]
+            },
+            "qualified": {
+              "type": "boolean",
+              "required": false,
+              "deprecated": true
+            }
+          }
+        },
+        {
+          "name": "Delete Call",
+          "method": "DELETE",
+          "path": "/api/v1.0/calls/{id}",
+          "pathParameters": {
+            "id": {
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      ]
+    },
+    "attribution": {
+      "description": "Get attribution reports for ads and ad accounts",
+      "endpoints": [
+        {
+          "name": "Get Ads Attribution Report",
+          "method": "GET",
+          "path": "/api/v1.0/attribution",
+          "queryParameters": {
+            "attributionModel": {
+              "type": "string",
+              "required": true,
+              "enum": ["last_click", "scientific", "first_click"]
+            },
+            "startDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "endDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "level": {
+              "type": "string",
+              "required": true,
+              "enum": [
+                "google_campaign",
+                "google_v2_adgroup",
+                "google_ad",
+                "google_v2_keyword",
+                "facebook_adset",
+                "tiktok_adgroup",
+                "snapchat_adsquad",
+                "pinterest_adgroup",
+                "twitter_adgroup",
+                "bing_adgroup",
+                "linkedin_campaign",
+                "facebook_ad",
+                "tiktok_ad",
+                "snapchat_ad",
+                "pinterest_ad",
+                "bing_ad"
+              ]
+            },
+            "fields": {
+              "type": "string",
+              "required": true,
+              "description": "Comma-separated list of metrics"
+            },
+            "ids": {
+              "type": "string",
+              "required": true,
+              "description": "Comma-separated IDs"
+            },
+            "keywordsIds": {
+              "type": "string",
+              "required": false
+            },
+            "currency": {
+              "type": "string",
+              "required": false,
+              "enum": ["user_currency", "usd"],
+              "default": "user_currency"
+            },
+            "dayOfAttribution": {
+              "type": "boolean",
+              "required": false,
+              "default": false
+            },
+            "scientificDaysRange": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 30,
+              "default": 30
+            },
+            "sourceConfiguration": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "all_sources",
+                "only_organic",
+                "only_paid",
+                "prioritize_organic",
+                "prioritize_paid"
+              ]
+            },
+            "ignoreRecurringSales": {
+              "type": "boolean",
+              "required": false,
+              "default": false
+            },
+            "isAdAccountId": {
+              "type": "boolean",
+              "required": false,
+              "default": false
+            },
+            "forecastingOption": {
+              "type": "string",
+              "required": false,
+              "enum": ["first_sale", "total_sales"],
+              "default": "first_sale"
+            },
+            "windowAttributionDaysRange": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 365,
+              "default": 0
+            },
+            "newCustomerConfiguration": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "all_customers",
+                "only_returning_customers",
+                "only_unique_customers"
+              ],
+              "default": "all_customers"
+            }
+          }
+        },
+        {
+          "name": "Get Ad Accounts Attribution Report",
+          "method": "GET",
+          "path": "/api/v1.0/attribution/ad-account",
+          "queryParameters": {
+            "attributionModel": {
+              "type": "string",
+              "required": true,
+              "enum": ["last_click", "scientific", "first_click"]
+            },
+            "startDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "endDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "fields": {
+              "type": "string",
+              "required": true
+            },
+            "ids": {
+              "type": "string",
+              "required": true,
+              "description": "Single Ad Account ID only"
+            },
+            "currency": {
+              "type": "string",
+              "required": false,
+              "enum": ["user_currency", "usd"],
+              "default": "user_currency"
+            },
+            "dayOfAttribution": {
+              "type": "boolean",
+              "required": false,
+              "default": false
+            },
+            "scientificDaysRange": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 30,
+              "default": 30
+            },
+            "sourceConfiguration": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "all_sources",
+                "only_organic",
+                "only_paid",
+                "prioritize_organic",
+                "prioritize_paid"
+              ]
+            },
+            "dateTimeGroupingOption": {
+              "type": "string",
+              "required": false,
+              "enum": ["ad_account", "day", "week", "month", "year"],
+              "default": "ad_account"
+            },
+            "ignoreRecurringSales": {
+              "type": "boolean",
+              "required": false,
+              "default": false
+            },
+            "forecastingOption": {
+              "type": "string",
+              "required": false,
+              "enum": ["first_sale", "total_sales"],
+              "default": "first_sale"
+            },
+            "windowAttributionDaysRange": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 365,
+              "default": 0
+            },
+            "newCustomerConfiguration": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "all_customers",
+                "only_returning_customers",
+                "only_unique_customers"
+              ],
+              "default": "all_customers"
+            }
+          }
+        }
+      ]
+    },
+    "products": {
+      "description": "Manage products",
+      "endpoints": [
+        {
+          "name": "Create Product",
+          "method": "POST",
+          "path": "/api/v1.0/products",
+          "bodyParameters": {
+            "name": {
+              "type": "string",
+              "required": true
+            },
+            "price": {
+              "type": "number",
+              "required": true
+            },
+            "category": {
+              "type": "string",
+              "required": false
+            },
+            "packages": {
+              "type": "array",
+              "required": false
+            }
+          }
+        }
+      ]
+    },
+    "tags": {
+      "description": "Retrieve tags",
+      "endpoints": [
+        {
+          "name": "List All Tags",
+          "method": "GET",
+          "path": "/api/v1.0/tags"
+        }
+      ]
+    },
+    "sources": {
+      "description": "Manage traffic sources",
+      "endpoints": [
+        {
+          "name": "List All Sources",
+          "method": "GET",
+          "path": "/api/v1.0/sources",
+          "queryParameters": {
+            "adSourceIds": {
+              "type": "array",
+              "required": false
+            },
+            "includeOrganic": {
+              "type": "boolean",
+              "required": false
+            },
+            "includeDisregarded": {
+              "type": "boolean",
+              "required": false
+            },
+            "integrationType": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "FACEBOOK",
+                "GOOGLE",
+                "SNAPCHAT",
+                "TIKTOK",
+                "TWITTER",
+                "LINKEDIN",
+                "PINTEREST",
+                "BING"
+              ]
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        },
+        {
+          "name": "Create Source",
+          "method": "POST",
+          "path": "/api/v1.0/sources",
+          "bodyParameters": {
+            "name": {
+              "type": "string",
+              "required": true
+            },
+            "category": {
+              "type": "string",
+              "required": false
+            },
+            "goal": {
+              "type": "string",
+              "required": false
+            },
+            "trafficSource": {
+              "type": "string",
+              "required": false
+            },
+            "isDisregard": {
+              "type": "boolean",
+              "required": false
+            },
+            "isOrganic": {
+              "type": "boolean",
+              "required": false
+            },
+            "integrationType": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "FACEBOOK",
+                "GOOGLE",
+                "TIKTOK",
+                "SNAPCHAT",
+                "LINKEDIN",
+                "TWITTER",
+                "PINTEREST",
+                "BING"
+              ]
+            },
+            "adSourceId": {
+              "type": "string",
+              "required": false
+            },
+            "accountId": {
+              "type": "string",
+              "required": false
+            },
+            "adspendSubType": {
+              "type": "string",
+              "required": false,
+              "enum": ["DISPLAY", "VIDEO"]
+            },
+            "campaignId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        }
+      ]
+    },
+    "ads": {
+      "description": "Retrieve ads",
+      "endpoints": [
+        {
+          "name": "List All Ads",
+          "method": "GET",
+          "path": "/api/v1.0/ads",
+          "queryParameters": {
+            "adSourceIds": {
+              "type": "array",
+              "required": false
+            },
+            "integrationType": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "FACEBOOK",
+                "GOOGLE",
+                "SNAPCHAT",
+                "TIKTOK",
+                "TWITTER",
+                "LINKEDIN",
+                "PINTEREST",
+                "BING"
+              ]
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        }
+      ]
+    },
+    "customCosts": {
+      "description": "Create custom costs for sources",
+      "endpoints": [
+        {
+          "name": "Create Custom Cost",
+          "method": "POST",
+          "path": "/api/v1.0/custom-costs",
+          "bodyParameters": {
+            "startDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "endDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "frequency": {
+              "type": "string",
+              "required": true,
+              "enum": ["DAILY", "ONE_TIME"]
+            },
+            "cost": {
+              "type": "number",
+              "required": true,
+              "min": 0.01
+            },
+            "tags": {
+              "type": "array",
+              "required": true,
+              "maxItems": 10
+            }
+          }
+        }
+      ]
+    },
+    "clicks": {
+      "description": "Track and retrieve clicks",
+      "endpoints": [
+        {
+          "name": "Create Click",
+          "method": "POST",
+          "path": "/api/v1.0/clicks",
+          "bodyParameters": {
+            "referrerUrl": {
+              "type": "string",
+              "required": true
+            },
+            "sessionId": {
+              "type": "string",
+              "required": false
+            },
+            "previousUrl": {
+              "type": "string",
+              "required": false
+            },
+            "userAgent": {
+              "type": "string",
+              "required": false
+            },
+            "ip": {
+              "type": "string",
+              "required": false
+            },
+            "sourceLinkTag": {
+              "type": "string",
+              "required": false,
+              "pattern": "^@"
+            },
+            "isOrganic": {
+              "type": "boolean",
+              "required": false
+            },
+            "integrationType": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "FACEBOOK",
+                "GOOGLE",
+                "TIKTOK",
+                "SNAPCHAT",
+                "LINKEDIN",
+                "TWITTER",
+                "PINTEREST",
+                "BING"
+              ]
+            },
+            "adSourceId": {
+              "type": "string",
+              "required": false
+            },
+            "adspendAdId": {
+              "type": "string",
+              "required": false
+            },
+            "adSourceClickId": {
+              "type": "string",
+              "required": false
+            },
+            "email": {
+              "type": "string",
+              "required": false
+            },
+            "phones": {
+              "type": "array",
+              "required": false
+            },
+            "tag": {
+              "type": "string",
+              "required": false
+            },
+            "date": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            }
+          }
+        },
+        {
+          "name": "Retrieve Clicks",
+          "method": "GET",
+          "path": "/api/v1.0/leads/clicks",
+          "queryParameters": {
+            "leadId": {
+              "type": "string",
+              "required": false,
+              "description": "Required if email not provided"
+            },
+            "email": {
+              "type": "string",
+              "required": false,
+              "description": "Required if leadId not provided"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        }
+      ]
+    },
+    "carts": {
+      "description": "Manage shopping carts",
+      "endpoints": [
+        {
+          "name": "Create Cart",
+          "method": "POST",
+          "path": "/api/v1.0/carts",
+          "bodyParameters": {
+            "cartId": {
+              "type": "string",
+              "required": false
+            },
+            "email": {
+              "type": "string",
+              "required": false
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false
+            },
+            "date": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "priceFormat": {
+              "type": "string",
+              "required": false,
+              "enum": ["DECIMAL", "INTEGER"],
+              "default": "DECIMAL"
+            },
+            "currency": {
+              "type": "string",
+              "required": false
+            },
+            "items": {
+              "type": "array",
+              "required": true,
+              "minItems": 1,
+              "items": {
+                "name": {
+                  "type": "string",
+                  "required": true
+                },
+                "price": {
+                  "type": "number",
+                  "required": true
+                },
+                "externalId": {
+                  "type": "string",
+                  "required": false
+                },
+                "quantity": {
+                  "type": "number",
+                  "required": false,
+                  "default": 1
+                },
+                "sku": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Cart",
+          "method": "PUT",
+          "path": "/api/v1.0/carts",
+          "bodyParameters": {
+            "cartId": {
+              "type": "string",
+              "required": true
+            },
+            "email": {
+              "type": "string",
+              "required": false
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false
+            },
+            "date": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "priceFormat": {
+              "type": "string",
+              "required": false,
+              "enum": ["DECIMAL", "INTEGER"]
+            },
+            "currency": {
+              "type": "string",
+              "required": false
+            },
+            "items": {
+              "type": "array",
+              "required": true,
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "userInfo": {
+      "description": "Retrieve user account information",
+      "endpoints": [
+        {
+          "name": "Retrieve User Information",
+          "method": "GET",
+          "path": "/api/v1.0/user-info"
+        }
+      ]
+    },
+    "keywords": {
+      "description": "Retrieve Google Ads keywords",
+      "endpoints": [
+        {
+          "name": "Retrieve Keywords",
+          "method": "GET",
+          "path": "/api/v1.0/keywords",
+          "queryParameters": {
+            "adgroupId": {
+              "type": "string",
+              "required": false,
+              "description": "Google Ad Group ID"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 0,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          },
+          "notes": "Requires valid Google_V2 account"
+        }
+      ]
+    },
+    "subscriptions": {
+      "description": "Manage subscriptions",
+      "endpoints": [
+        {
+          "name": "Retrieve Subscriptions",
+          "method": "GET",
+          "path": "/api/v1.0/subscriptions",
+          "queryParameters": {
+            "ids": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "emails": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "leadIds": {
+              "type": "array",
+              "required": false,
+              "maxItems": 50
+            },
+            "productTags": {
+              "type": "array",
+              "required": false,
+              "maxItems": 20
+            },
+            "subscriptionStates": {
+              "type": "array",
+              "required": false,
+              "enum": [
+                "ACTIVE",
+                "TRIALING",
+                "CANCELED",
+                "PAST_DUE",
+                "INCOMPLETE",
+                "INCOMPLETE_EXPIRED",
+                "UNPAID",
+                "COMPLETED",
+                "PAUSED"
+              ]
+            },
+            "fromDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "toDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "pageSize": {
+              "type": "number",
+              "required": false,
+              "min": 1,
+              "max": 250
+            },
+            "pageId": {
+              "type": "string",
+              "required": false
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "method": "POST",
+          "path": "/api/v1.0/subscriptions",
+          "bodyParameters": {
+            "email": {
+              "type": "string",
+              "required": false
+            },
+            "parentEmail": {
+              "type": "string",
+              "required": false
+            },
+            "firstName": {
+              "type": "string",
+              "required": false
+            },
+            "lastName": {
+              "type": "string",
+              "required": false
+            },
+            "leadIps": {
+              "type": "array",
+              "required": false
+            },
+            "stage": {
+              "type": "string",
+              "required": false
+            },
+            "phoneNumbers": {
+              "type": "array",
+              "required": false
+            },
+            "subscriptionId": {
+              "type": "string",
+              "required": false
+            },
+            "name": {
+              "type": "string",
+              "required": false
+            },
+            "status": {
+              "type": "string",
+              "required": true,
+              "enum": [
+                "ACTIVE",
+                "TRIALING",
+                "CANCELED",
+                "PAST_DUE",
+                "INCOMPLETE",
+                "INCOMPLETE_EXPIRED",
+                "UNPAID",
+                "COMPLETED",
+                "PAUSED"
+              ]
+            },
+            "startDate": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 8601"
+            },
+            "endDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "cancelAtDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "trialStartDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "trialEndDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "planId": {
+              "type": "string",
+              "required": false
+            },
+            "price": {
+              "type": "number",
+              "required": true
+            },
+            "periodicity": {
+              "type": "string",
+              "required": true,
+              "enum": ["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "method": "PUT",
+          "path": "/api/v1.0/subscriptions",
+          "bodyParameters": {
+            "ids": {
+              "type": "array",
+              "required": true,
+              "maxItems": 50
+            },
+            "name": {
+              "type": "string",
+              "required": false
+            },
+            "status": {
+              "type": "string",
+              "required": false,
+              "enum": [
+                "ACTIVE",
+                "TRIALING",
+                "CANCELED",
+                "PAST_DUE",
+                "INCOMPLETE",
+                "INCOMPLETE_EXPIRED",
+                "UNPAID",
+                "COMPLETED",
+                "PAUSED"
+              ]
+            },
+            "startDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "endDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "cancelAtDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "trialStartDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "trialEndDate": {
+              "type": "string",
+              "required": false,
+              "format": "ISO 8601"
+            },
+            "price": {
+              "type": "number",
+              "required": true
+            }
+          }
+        }
+      ]
+    }
+  },
+  "enums": {
+    "AdspendType": [
+      "FACEBOOK",
+      "GOOGLE",
+      "TIKTOK",
+      "SNAPCHAT",
+      "LINKEDIN",
+      "TWITTER",
+      "PINTEREST",
+      "BING"
+    ],
+    "AdspendSubType": ["DISPLAY", "VIDEO"],
+    "SubscriptionStatus": [
+      "ACTIVE",
+      "TRIALING",
+      "CANCELED",
+      "PAST_DUE",
+      "INCOMPLETE",
+      "INCOMPLETE_EXPIRED",
+      "UNPAID",
+      "COMPLETED",
+      "PAUSED"
+    ],
+    "CallState": ["QUALIFIED", "UNQUALIFIED", "CANCELLED", "NO_SHOW"],
+    "AttributionModel": ["last_click", "scientific", "first_click"],
+    "AttributionLevel": [
+      "google_campaign",
+      "google_v2_adgroup",
+      "google_ad",
+      "google_v2_keyword",
+      "facebook_adset",
+      "tiktok_adgroup",
+      "snapchat_adsquad",
+      "pinterest_adgroup",
+      "twitter_adgroup",
+      "bing_adgroup",
+      "linkedin_campaign",
+      "facebook_ad",
+      "tiktok_ad",
+      "snapchat_ad",
+      "pinterest_ad",
+      "bing_ad"
+    ],
+    "Currency": ["user_currency", "usd"],
+    "PriceFormat": ["DECIMAL", "INTEGER"],
+    "Frequency": ["DAILY", "ONE_TIME"],
+    "Periodicity": ["DAY", "WEEK", "MONTH", "QUARTER", "YEAR"],
+    "DateTimeGroupingOption": ["ad_account", "day", "week", "month", "year"]
+  },
+  "attributionMetrics": [
+    "sales",
+    "revenue",
+    "calls",
+    "total_revenue",
+    "recurring_revenue",
+    "refund",
+    "unique_sales",
+    "leads",
+    "new_leads",
+    "cost",
+    "profit",
+    "roi",
+    "roas",
+    "refund_count",
+    "refund_sales_percentage",
+    "refund_revenue_percentage",
+    "cost_per_call",
+    "cost_per_lead",
+    "cost_per_sale",
+    "cost_per_new_lead",
+    "cost_per_unique_sale",
+    "unique_customers",
+    "unique_customers_revenue",
+    "cost_per_unique_customer",
+    "net_profit",
+    "hard_costs",
+    "qualified_calls",
+    "unqualified_calls",
+    "cost_per_qualified_call",
+    "time_of_sale_attribution",
+    "time_of_call_attribution",
+    "clicks",
+    "new_visits",
+    "cost_per_new_visit",
+    "cost_per_click",
+    "reported",
+    "reported_result",
+    "shop_reported_result",
+    "reported_vs_revenue",
+    "new_customers_percentage",
+    "recurring_customers",
+    "total_customers",
+    "customers",
+    "ctr",
+    "cpm",
+    "cvr",
+    "impressions",
+    "gross_margins",
+    "partial_video_views",
+    "unique_calls",
+    "canceled_calls",
+    "cost_per_unique_call",
+    "net_profit_percentage",
+    "taxes",
+    "cost_of_goods",
+    "shipping_value",
+    "30_days_ltv",
+    "60_days_ltv",
+    "90_days_ltv",
+    "6_months_ltv",
+    "1_year_ltv",
+    "30_days_ltv_forecast",
+    "60_days_ltv_forecast",
+    "90_days_ltv_forecast",
+    "6_months_ltv_forecast",
+    "1_year_ltv_forecast",
+    "churn_rate",
+    "one_time_sales",
+    "subscription_30_days_forecast",
+    "subscription_60_days_forecast",
+    "subscription_90_days_forecast",
+    "subscription_6_months_forecast",
+    "subscription_1_year_forecast",
+    "cac",
+    "aov",
+    "new_subscriptions",
+    "canceled_subscriptions",
+    "direct_subscriptions",
+    "new_mrr",
+    "new_trials",
+    "converted_trials",
+    "canceled_trials",
+    "cost_per_new_subscriptions",
+    "cost_per_new_trials",
+    "carts",
+    "atc_events",
+    "purchased_carts",
+    "atc_cvr",
+    "atc_rate",
+    "cost_per_atc",
+    "name",
+    "parent_name"
+  ],
+  "totalEndpoints": 29
+}
