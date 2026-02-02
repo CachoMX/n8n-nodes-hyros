@@ -1,5 +1,5 @@
 {
-  "name": "HYROS - All Endpoints Test",
+  "name": "HYROS - All Endpoints Test v2.3.5",
   "nodes": [
     {
       "parameters": {},
@@ -177,14 +177,13 @@
       "parameters": {
         "resource": "lead",
         "operation": "getJourney",
-        "searchBy": "email",
-        "email": "testlead@example.com"
+        "ids": "lead-id-placeholder"
       },
       "type": "n8n-nodes-hyros.hyros",
       "typeVersion": 1,
       "position": [300, 900],
       "id": "lead-journey",
-      "name": "Lead - Get Journey",
+      "name": "Lead - Get Journey (v2.3.4 fix - no quotes)",
       "credentials": {
         "hyrosApi": {
           "id": "aJ2u6uy3TF1hdN6B",
@@ -235,8 +234,8 @@
       "parameters": {
         "resource": "sales",
         "operation": "update",
-        "orderNumber": "TEST-ORDER-001",
         "updateFields": {
+          "ids": "sale-id-placeholder",
           "totalPrice": 149.99
         }
       },
@@ -244,7 +243,7 @@
       "typeVersion": 1,
       "position": [300, 1200],
       "id": "sales-update",
-      "name": "Sales - Update",
+      "name": "Sales - Update (v2.3.3 fix - requires IDs)",
       "credentials": {
         "hyrosApi": {
           "id": "aJ2u6uy3TF1hdN6B",
@@ -337,6 +336,7 @@
         "name": "Test Call",
         "email": "testlead@example.com",
         "additionalFields": {
+          "externalId": "test-call-ext-001",
           "firstName": "John",
           "lastName": "Doe",
           "state": "QUALIFIED"
@@ -376,8 +376,9 @@
       "parameters": {
         "resource": "call",
         "operation": "update",
-        "callName": "Test Call",
-        "updateFields": {
+        "externalIds": "test-call-ext-001",
+        "name": "Test Call Updated",
+        "additionalFields": {
           "state": "CANCELLED"
         }
       },
@@ -385,7 +386,7 @@
       "typeVersion": 1,
       "position": [300, 1900],
       "id": "call-update",
-      "name": "Call - Update",
+      "name": "Call - Update (v2.3.2 fix)",
       "credentials": {
         "hyrosApi": {
           "id": "aJ2u6uy3TF1hdN6B",
@@ -739,14 +740,16 @@
       "parameters": {
         "resource": "customCost",
         "operation": "create",
-        "name": "Test Cost",
-        "cost": 100
+        "startDate": "2026-02-01T00:00:00.000Z",
+        "frequency": "ONE_TIME",
+        "cost": 100,
+        "tags": ["test-cost"]
       },
       "type": "n8n-nodes-hyros.hyros",
       "typeVersion": 1,
       "position": [300, 3800],
       "id": "customcost-create",
-      "name": "Custom Cost - Create",
+      "name": "Custom Cost - Create (v2.3.5 fix)",
       "credentials": {
         "hyrosApi": {
           "id": "aJ2u6uy3TF1hdN6B",
