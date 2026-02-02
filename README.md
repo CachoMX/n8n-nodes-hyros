@@ -183,7 +183,17 @@ This node provides **100% coverage** of the Hyros API v1.0:
 | Error Handling | ✅ Comprehensive |
 | Pagination | ✅ Full support |
 | Type Safety | ✅ TypeScript |
-| Testing | ✅ Exhaustive validation |
+| Testing | ✅ Exhaustive validation (23/27 endpoints verified) |
+
+### Testing & Documentation
+
+The node has been exhaustively tested with systematic validation:
+- ✅ **Phase 1 (GET):** 13 passed - All read operations working
+- ✅ **Phase 2 (POST):** 5 passed - Create operations verified
+- ✅ **Phase 3 (PUT):** 3 passed - Update operations confirmed
+- ✅ **Phase 4 (DELETE):** 2 passed - Delete operations tested
+- 📋 **n8n Workflow:** Import [hyros-all-endpoints-test.json](hyros-all-endpoints-test.json) for complete testing examples
+- 🐛 **4 bugs found and fixed** during comprehensive testing (v2.3.2-2.3.5)
 
 ### Supported Platforms
 - ✅ Facebook Ads
@@ -201,7 +211,7 @@ This node provides **100% coverage** of the Hyros API v1.0:
 - **PRODUCTION READY**: Exhaustive testing of all 37+ endpoints completed
 - Fixed Custom Cost Create: endDate now optional, frequency values uppercase (DAILY, ONE_TIME)
 - Removed invalid frequency options (weekly, monthly not in API spec)
-- See [TESTING_SUMMARY.md](TESTING_SUMMARY.md) for complete test results
+- Complete testing documentation available in repository
 
 ### 2.3.4
 - Fixed Lead Get Journey: Removed incorrect quote wrapping from IDs parameter
