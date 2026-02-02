@@ -302,7 +302,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/leads', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'update') {
 						const searchBy = this.getNodeParameter('searchBy', i) as string;
@@ -351,7 +351,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/leads', body, qs);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
@@ -476,7 +476,7 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/sales', {}, qs);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
 						const saleId = this.getNodeParameter('saleId', i) as string;
@@ -525,7 +525,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/orders', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'refund') {
 						const orderId = this.getNodeParameter('orderId', i) as string;
@@ -568,7 +568,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/calls', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'get') {
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
@@ -647,7 +647,7 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/calls', {}, qs);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
 						const callId = this.getNodeParameter('callId', i) as string;
@@ -784,7 +784,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/products', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'tag') {
@@ -884,7 +884,7 @@ export class Hyros implements INodeType {
 						};
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-costs', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'click') {
@@ -908,7 +908,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/clicks', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'get') {
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
@@ -965,7 +965,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/carts', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'update') {
 						const cartId = this.getNodeParameter('cartId', i) as string;
@@ -993,7 +993,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/carts', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'userInfo') {
@@ -1091,7 +1091,7 @@ export class Hyros implements INodeType {
 						Object.assign(body, additionalFields);
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/subscriptions', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'update') {
 						const ids = this.getNodeParameter('ids', i) as string;
@@ -1127,7 +1127,7 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/subscriptions', body);
-						returnData.push(responseData);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 				} else if (resource === 'trackingScript') {
 					// TRACKING SCRIPT OPERATIONS
@@ -1139,7 +1139,23 @@ export class Hyros implements INodeType {
 							qs.domain = additionalFields.domain;
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/tracking-script', {}, qs);
+						// Tracking script returns text/plain, not JSON
+						const credentials = await this.getCredentials('hyrosApi');
+						const options: any = {
+							method: 'GET',
+							qs,
+							url: `${credentials.baseUrl}/api/v1.0/tracking-script`,
+							headers: {
+								'API-Key': credentials.apiKey as string,
+							},
+							json: false, // Important: response is text/plain, not JSON
+						};
+
+						if (Object.keys(qs).length === 0) {
+							delete options.qs;
+						}
+
+						const responseData = await this.helpers.httpRequest(options);
 						// Response is plain text (HTML script), wrap it for n8n
 						returnData.push({ script: responseData });
 					}
