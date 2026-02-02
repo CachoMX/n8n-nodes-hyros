@@ -887,11 +887,15 @@ export class Hyros implements INodeType {
 
 						const body: IDataObject = {
 							startDate,
-							endDate,
 							frequency,
 							cost,
 							tags,
 						};
+
+						// Add endDate only if provided (it's optional per API spec)
+						if (endDate) {
+							body.endDate = endDate;
+						}
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-costs', body);
 						returnData.push({ success: true, result: (responseData as any).result });

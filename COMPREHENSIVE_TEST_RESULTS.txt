@@ -1,0 +1,250 @@
+==================================================
+HYROS API COMPREHENSIVE TESTING - ALL ENDPOINTS
+Started: Mon, Feb  2, 2026  5:07:54 PM
+==================================================
+
+============================================
+PHASE 1: GET ENDPOINTS (READ-ONLY)
+============================================
+
+---------------------------------------------------
+TEST: User Info - Get
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/user-info
+
+HTTP STATUS: 200
+RESPONSE: {"result":{"userProfile":{"email":"carlos.aragon@hyros.com","firstName":"Carlos","lastName":"Aragon","phoneNumber":null,"companyName":"Hyros","profilePicture":null,"vat":null,"helpNotes":true,"notificationsEnabled":"true","timezone":"-05:00","userAddress":{"street":"Aragon","city":"Colima","state":"Colima","zipCode":"78398"}},"allowedAccounts":[{"firstName":"Ivan","lastName":"Pentyliuk","companyName":"","email":"ivan@hyros.com","pictureUrl":"https://markethero-cdn-prod.s3.amazonaws.com/profile/6
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Lead - Get Many
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/leads?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"email":"test-full-1770073268@hyros-test.com","id":"1a700086f8f16a2633631a69d723bd06ef261c21b71dd54ed36ea1ce50a770c5","creationDate":"2026-02-02T18:01:07-05:00","firstName":"testfull","lastName":"user","tags":["$api-test-call-1770073268"]},{"email":"test-exhaustive-1770073211@hyros-test.com","id":"9e7f24a4c3e8736bf3ea45cc4c849e21c06a21be75b30494b11673cd3b6e2b94","creationDate":"2026-02-02T18:00:10-05:00","firstName":"test","lastName":"exhaustive"},{"email":"test-update-1770071744@hyr
+✅ PASS - Got expected status 200
+Captured Lead ID for testing: 1a700086f8f16a2633631a69d723bd06ef261c21b71dd54ed36ea1ce50a770c5
+---------------------------------------------------
+TEST: Lead - Get Journey
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/leads/journey?ids=1a700086f8f16a2633631a69d723bd06ef261c21b71dd54ed36ea1ce50a770c5
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"lead":{"email":"test-full-1770073268@hyros-test.com","id":"1a700086f8f16a2633631a69d723bd06ef261c21b71dd54ed36ea1ce50a770c5","creationDate":"2026-02-02T18:01:07-05:00","isOriginLead":true,"firstName":"testfull","lastName":"user","tags":["$api-test-call-1770073268"]},"linkedLeads":[],"sales":[],"calls":[{"id":"cll-076b80f0b42d14889aa46308d44ba0371376db4bf41c974020b465d195befbe5","creationDate":"Mon Feb 02 23:01:13 UTC 2026","qualified":true,"score":1,"tag":"$api-test-call-1770073268"
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Sales - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/sales?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"id":"sle-d098f101d927e087f0fcedb1d09eab91d0b1a6c3fe48bd2ade23d345d9878be7","orderId":"72c9fb06ff0246b69e9bf76be9fa9dfb","creationDate":"Mon Feb 02 22:31:56 UTC 2026","qualified":true,"score":1,"recurring":false,"quantity":3,"lead":{"email":"testlead@example.com","id":"e35bec4db6ee13d1debdb7975b035bfb4002514c3d98020a296d67cc642613da","creationDate":"Mon Feb 02 17:39:13 UTC 2026","firstName":"test","lastName":"lead","tags":["$api-test-call","$prueba"]},"price":{"price":313,"discount":
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Call - Get
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/calls?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"id":"cll-076b80f0b42d14889aa46308d44ba0371376db4bf41c974020b465d195befbe5","tag":"$api-test-call-1770073268","qualified":true,"score":1,"creationDate":"Mon Feb 02 23:01:13 UTC 2026","externalId":"ext-call-1770073268","name":"Test Call 1770073268","state":"QUALIFIED","lead":{"email":"test-full-1770073268@hyros-test.com","id":"1a700086f8f16a2633631a69d723bd06ef261c21b71dd54ed36ea1ce50a770c5","creationDate":"Mon Feb 02 23:01:07 UTC 2026","firstName":"testfull","lastName":"user","tags":
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Click - Get (by email)
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/leads/clicks?email=testlead@example.com&pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"id":"e60f96410f524634bdc598c7f02d3ad8","date":"Mon Feb 02 17:44:51 UTC 2026","trackedUrl":"https://example.com","page":"https://example.com","previousUrl":null,"adspendType":"NONE","sourceLinkName":null,"ip":null,"agent":null,"cartId":null,"deduplicationParams":{},"adSpendId":null,"parsedParameters":{}},{"id":"109f058542c946738362ff9ee941ee2b","date":"Mon Feb 02 17:45:02 UTC 2026","trackedUrl":"https://example.com","page":"https://example.com","previousUrl":null,"adspendType":"NONE"
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Subscription - Get
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/subscriptions?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"id":"sub_1SttFADJigIQLCD7fRNqa1hm","status":"CANCELED","name":"rec plan3","tag":"#rec-plan3-day-0","startDate":"Mon Jan 26 17:06:21 UTC 2026","endDate":"Wed Jan 28 14:06:39 UTC 2026","cancelAtDate":"Wed Jan 28 14:06:39 UTC 2026","trialStartDate":null,"trialEndDate":null,"planId":"price_1SttEUDJigIQLCD7fn7kH9l4","price":0.5,"periodicity":"DAY","lead":{"id":"fb7bc4fd276114bcbbba4f5c4108a72c000d3e63149e5537bc2a98620d64a5f1","firstName":"carlos","lastName":"mancea","email":"brandon@vixi
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Product - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/products?pageSize=3
+
+HTTP STATUS: 404
+RESPONSE: Not found
+❌ FAIL - Expected 200 but got 404
+---------------------------------------------------
+TEST: Tag - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/tags
+
+HTTP STATUS: 200
+RESPONSE: {"result":["!321321","!3minutes","!764107","!airmanualtag","!api-test","!carlos","!cash-on-delivery-cod","!click-funnels-2","!clicked","!clicked-aic","!clicked-perm5testtt","!clicked-perm9test","!clicked-pingit","!clicked-pingit-global","!clicked-pingit-testone","!clicked-pingit-testonedomain","!clicked999","!clickedlfi","!contactus_","!contactus_page","!conversion-confirmed","!digistore24","!facebook-leads-formation-investir-et-vivre-de-limmobilier","!from-carlos","!from-file","!frompopup","!hu
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Source - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/sources?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"name":"Campaña de  Mensaje de wts","tag":"@campaa-de-mensaje-de-wts","disregarded":false,"organic":false,"adSource":{"adSourceId":"23846336309060506","adAccountId":"2375331812723626","platform":"FACEBOOK"},"trafficSource":{"id":"cat-180ee8520f768f25065ad868fae1c5b2","name":"facebook"},"goal":{"id":"cat-93460cbac1c4fa67b01ea0c9ea735e43","name":"all"},"category":{"id":"cat-a506fc3b5dc77215cb82b39f8a618686","name":"Campaña mensajes / Productos / 14 de febrero"},"creationDate":161231508
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Ad - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/ads?pageSize=3
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"name":"Unknown name","adSource":{"adSourceId":"376215876397","adAccountId":"4269773675","platform":"GOOGLE"},"source":{"name":"PartyGo 1","tag":"@partygo-1","disregarded":false,"organic":false,"adSource":{"adSourceId":"2089258252","adAccountId":"4269773675","platform":"GOOGLE"},"trafficSource":{"id":"cat-362058756c949fb2aeb494b8b37f06bb","name":"google"},"goal":{"id":"cat-93460cbac1c4fa67b01ea0c9ea735e43","name":"all"},"category":{"id":"cat-51ddd59b1c3f49ad911d83269c0b5fcf","name":"
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Stages - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/stages
+
+HTTP STATUS: 200
+RESPONSE: {"result":[{"name":"3rd step","amount":2},{"name":"other","amount":6},{"name":"asd","amount":null},{"name":"Customer","amount":1},{"name":"Lead","amount":5},{"name":"PRO","amount":1},{"name":"Follows","amount":null},{"name":"testy","amount":1}],"request_id":"4f1dbcb3dde14a46ab8bfdfcfa71f45e"}
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Keyword - Get All
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/keywords?pageSize=3
+
+HTTP STATUS: 400
+RESPONSE: {"result":"ERROR","message":["A valid Google_V2 account is required to fetch keywords"]}
+❌ FAIL - Expected 200 but got 400
+---------------------------------------------------
+TEST: Domains - Get
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/domains
+
+HTTP STATUS: 200
+RESPONSE: ["data.carlosaragon.online"]
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Tracking Script - Get
+METHOD: GET
+URL: https://api.hyros.com/v1/api/v1.0/tracking-script
+
+HTTP STATUS: 200
+RESPONSE: <script>
+    var head = document.head;
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = "https://177948.t.hyros.com/v1/lst/universal-script?ph=664ad84e5a8d71d02e5f8fe74e28bfe1eca5b5a982655b75fac5513b98d326d3&tag=!clicked&ref_url=" + encodeURIComponent(document.URL);
+    head.appendChild(script);
+</script>
+✅ PASS - Got expected status 200
+
+============================================
+PHASE 1 SUMMARY
+============================================
+✅ Passed: 13
+❌ Failed: 3
+Total: 16
+
+Completed: Mon, Feb  2, 2026  5:08:26 PM
+
+============================================
+PHASE 2: POST ENDPOINTS (CREATE)
+============================================
+
+---------------------------------------------------
+TEST: Lead - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/leads
+DATA: {"email": "test-phase2-1770073706@hyros-test.com", "firstName": "Phase2", "lastName": "TestLead"}
+
+HTTP STATUS: 200
+RESPONSE: {"result":"OK","request_id":"74cd7b358d3a47ae98315d5022841cf3"}
+✅ PASS - Got expected status 200
+Created Lead ID: 
+---------------------------------------------------
+TEST: Sales - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/sales
+DATA: {"email": "test-phase2-1770073706@hyros-test.com", "orderId": "sale-1770073706", "totalPrice": 149.99, "productTags": ["#test-product"]}
+
+HTTP STATUS: 404
+RESPONSE: Not found
+❌ FAIL - Expected 200 but got 404
+---------------------------------------------------
+TEST: Order - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/orders
+DATA: {"email": "test-phase2-1770073706@hyros-test.com", "orderId": "order-1770073706", "items": [{"name": "Test Product", "price": 99.99, "quantity": 1, "productTags": ["#test"]}]}
+
+HTTP STATUS: 200
+RESPONSE: {"result":"OK","request_id":"fd6b9db779064ff994e726375bc07447"}
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Call - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/calls
+DATA: {"name": "Test Call Phase 2", "email": "test-phase2-1770073706@hyros-test.com", "externalId": "call-ext-1770073706"}
+
+HTTP STATUS: 200
+RESPONSE: {"result":"OK","request_id":"16013e80e06a4b4ca5c1825f88300ef8"}
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Cart - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/carts
+DATA: {"cartId": "cart-1770073706", "email": "test-phase2-1770073706@hyros-test.com", "items": [{"name": "Test Cart Item", "price": 49.99, "quantity": 2}]}
+
+HTTP STATUS: 200
+RESPONSE: {"result":"OK","message":["external_cart_id: cart-1770073706"],"request_id":"875b1fba89be417db3a2355578a29010"}
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Click - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/clicks
+DATA: {"email": "test-phase2-1770073706@hyros-test.com", "trackedUrl": "https://test.example.com/click-1770073706", "page": "https://test.example.com"}
+
+HTTP STATUS: 400
+RESPONSE: {"result":"ERROR","message":["Missing or invalid field: referrerUrl"]}
+❌ FAIL - Expected 200 but got 400
+---------------------------------------------------
+TEST: Subscription - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/subscriptions
+DATA: {"subscriptionId": "sub-test-1770073706", "email": "test-phase2-1770073706@hyros-test.com", "name": "Test Subscription", "price": 29.99, "status": "ACTIVE", "periodicity": "MONTH"}
+
+HTTP STATUS: 400
+RESPONSE: {"result":"ERROR","message":["Missing required field Start Date"]}
+❌ FAIL - Expected 200 but got 400
+---------------------------------------------------
+TEST: Product - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/products
+DATA: {"productTag": "#test-product-1770073706", "price": 99.99, "name": "Test Product 1770073706"}
+
+HTTP STATUS: 200
+RESPONSE: {"result":"OK","request_id":"41dbe381c03446c9bbd73927144afae1"}
+✅ PASS - Got expected status 200
+---------------------------------------------------
+TEST: Tag - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/tags
+DATA: {"tags": ["!test-tag-phase2-1770073706"]}
+
+HTTP STATUS: 404
+RESPONSE: Not found
+❌ FAIL - Expected 200 but got 404
+---------------------------------------------------
+TEST: Custom Cost - Create
+METHOD: POST
+URL: https://api.hyros.com/v1/api/v1.0/custom-costs
+DATA: {"date": "2026-02-02T12:00:00-05:00", "cost": 100.50, "adAccountId": "test-account-1770073706", "platform": "OTHER"}
+
+HTTP STATUS: 400
+RESPONSE: {"result":"ERROR","message":["Missing required field: tags","startDate is invalid","startDate is required"]}
+❌ FAIL - Expected 200 but got 400
+
+============================================
+PHASE 2 SUMMARY
+============================================
+✅ Passed: 5
+❌ Failed: 6
+Total: 11
+
+Phase 2 Completed: Mon, Feb  2, 2026  5:09:04 PM

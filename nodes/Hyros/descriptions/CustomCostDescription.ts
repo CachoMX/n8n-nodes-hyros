@@ -43,7 +43,6 @@ export const customCostFields: INodeProperties[] = [
 		displayName: 'End Date',
 		name: 'endDate',
 		type: 'dateTime',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['customCost'],
@@ -51,7 +50,7 @@ export const customCostFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'End date for custom cost (ISO 8601 format)',
+		description: 'End date for custom cost (ISO 8601 format, optional)',
 	},
 	{
 		displayName: 'Frequency',
@@ -67,23 +66,15 @@ export const customCostFields: INodeProperties[] = [
 		options: [
 			{
 				name: 'Daily',
-				value: 'daily',
-			},
-			{
-				name: 'Weekly',
-				value: 'weekly',
-			},
-			{
-				name: 'Monthly',
-				value: 'monthly',
+				value: 'DAILY',
 			},
 			{
 				name: 'One Time',
-				value: 'one_time',
+				value: 'ONE_TIME',
 			},
 		],
-		default: 'one_time',
-		description: 'Frequency of the custom cost',
+		default: 'ONE_TIME',
+		description: 'Frequency of the custom cost (DAILY or ONE_TIME per API specification)',
 	},
 	{
 		displayName: 'Cost',
