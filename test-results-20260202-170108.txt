@@ -1,0 +1,90 @@
+=== HYROS API EXHAUSTIVE TESTING ===
+Timestamp: 1770073268
+
+### 1. USER INFO - GET ###
+{"result":{"userProfile":{"email":"carlos.aragon@hyros.com","firstName":"Carlos","lastName":"Aragon","phoneNumber":null,"companyName":"Hyros","profilePicture":null,"vat":null,"helpNotes":true,"notificationsEnabled":"true","timezone":"-05:00","userAddress":{"street":"Aragon","city":"Colima","state":"Colima","zipCode":"78398"}},"allowedAccounts":[{"firstName":"Ivan","lastName":"Pentyliuk","companyName":"","email":"ivan@hyros.com","pictureUrl":"https://markethero-cdn-prod.s3.amazonaws.com/profile/6
+✅ User Info Get
+
+### 2. LEAD - CREATE ###
+{"result":"OK","request_id":"d7289b606bc24167ae142a3883601879"}
+✅ Lead Create
+
+### 3. LEAD - GET MANY ###
+{"result":[{"email":"test-exhaustive-1770073211@hyros-test.com","id":"9e7f24a4c3e8736bf3ea45cc4c849e21c06a21be75b30494b11673cd3b6e2b94","creationDate":"2026-02-02T18:00:10-05:00","firstName":"test","lastName":"exhaustive"}],"nextPageId":"c9e1220f544c44850b487714e020344676ce015ef4ad338dac74407ea48ca6db","request_id":"5f27409e2fa54f828623c4d36542ce98"}
+
+Lead ID captured: 9e7f24a4c3e8736bf3ea45cc4c849e21c06a21be75b30494b11673cd3b6e2b94
+✅ Lead Get Many
+
+### 4. LEAD - GET JOURNEY ###
+<!doctype html><html lang="en"><head><title>HTTP Status 400 – Bad Request</title><style type="text/css">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 400 – Bad Request</h1></body></html>
+✅ Lead Get Journey
+
+### 5. SALES - CREATE ###
+Not found
+✅ Sales Create
+
+### 6. SALES - GET ALL ###
+{"result":[{"id":"sle-d098f101d927e087f0fcedb1d09eab91d0b1a6c3fe48bd2ade23d345d9878be7","orderId":"72c9fb06ff0246b69e9bf76be9fa9dfb","creationDate":"Mon Feb 02 22:31:56 UTC 2026","qualified":true,"score":1,"recurring":false,"quantity":3,"lead":{"email":"testlead@example.com","id":"e35bec4db6ee13d1debdb7975b035bfb4002514c3d98020a296d67cc642613da","creationDate":"Mon Feb 02 17:39:13 UTC 2026","firstName":"test","lastName":"lead","tags":["$api-test-call","$prueba"]},"price":{"price":313,"discount":
+Sale ID captured: 72c9fb06ff0246b69e9bf76be9fa9dfb
+✅ Sales Get All
+
+### 7. CALL - CREATE ###
+{"result":"OK","request_id":"22cabafca9604c6bab6c586ade38905d"}
+✅ Call Create
+
+### 8. CALL - GET ###
+{"result":[{"id":"cll-be508153041addfcac12de1c138bcff3f2b1584c90f63976d5aaacce359cc912","tag":"$api-carlos-call","qualified":true,"score":1,"creationDate":"Mon Feb 02 17:06:32 UTC 2026","externalId":"4b70f944b33144d8979f1f73d4689d86","name":"CArlos Call","state":"QUALIFIED","lead":{"email":"caragon@me.com","id":"ce43e74c22922a0c00ab04454c5669580ef2cc721c63b06bfda9b84de15ed086","creationDate":"Wed Feb 03 15:47:43 UTC 2021","firstName":"carlos","lastName":"aragon","ips":["66.69.238.107","99.47.91.
+Call ID captured: cll-be508153041addfcac12de1c138bcff3f2b1584c90f63976d5aaacce359cc912
+✅ Call Get
+
+### 9. CALL - UPDATE ###
+{"message":["The externalId ext-call-1770073268 does not exist for this user"]}
+✅ Call Update
+
+### 10. TAG - GET ALL ###
+{"result":["!321321","!3minutes","!764107","!airmanualtag","!api-test","!carlos","!cash-on-delivery-cod","!click-funnels-2","!clicked","!clicked-aic","!clicked-perm5testtt","!clicked-perm9test","!clicked-pingit","!clicked-pingit-global","!clicked-pingit-testone","!clicked-pingit-testonedomain","!cli
+✅ Tag Get All
+
+### 11. TAG - CREATE ###
+Not found
+✅ Tag Create
+
+### 12. PRODUCT - GET ALL ###
+Not found
+✅ Product Get All
+
+### 13. SOURCE - GET ALL ###
+{"result":[{"name":"Campaña de  Mensaje de wts","tag":"@campaa-de-mensaje-de-wts","disregarded":false,"organic":false,"adSource":{"adSourceId":"23846336309060506","adAccountId":"2375331812723626","platform":"FACEBOOK"},"trafficSource":{"id":"cat-180ee8520f768f25065ad868fae1c5b2","name":"facebook"},"goal":{"id":"cat-93460cbac1c4fa67b01ea0c9ea735e43","name":"all"},"category":{"id":"cat-a506fc3b5dc77215cb82b39f8a618686","name":"Campaña mensajes / Productos / 14 de febrero"},"creationDate":1612315
+✅ Source Get All
+
+### 14. AD - GET ALL ###
+{"result":[{"name":"Unknown name","adSource":{"adSourceId":"376215876397","adAccountId":"4269773675","platform":"GOOGLE"},"source":{"name":"PartyGo 1","tag":"@partygo-1","disregarded":false,"organic":false,"adSource":{"adSourceId":"2089258252","adAccountId":"4269773675","platform":"GOOGLE"},"trafficSource":{"id":"cat-362058756c949fb2aeb494b8b37f06bb","name":"google"},"goal":{"id":"cat-93460cbac1c4fa67b01ea0c9ea735e43","name":"all"},"category":{"id":"cat-51ddd59b1c3f49ad911d83269c0b5fcf","name":"
+✅ Ad Get All
+
+### 15. STAGES - GET ALL ###
+{"result":[{"name":"3rd step","amount":2},{"name":"other","amount":6},{"name":"asd","amount":null},{"name":"Customer","amount":1},{"name":"Lead","amount":5},{"name":"PRO","amount":1},{"name":"Follows","amount":null},{"name":"testy","amount":1}],"request_id":"774e7c5ee4e04fd9ad77168ae4e24a85"}
+✅ Stages Get All
+
+### 16. KEYWORD - GET ALL ###
+{"result":"ERROR","message":["A valid Google_V2 account is required to fetch keywords"]}
+✅ Keyword Get All
+
+### 17. DOMAINS - GET ###
+["data.carlosaragon.online"]
+✅ Domains Get
+
+### 18. TRACKING SCRIPT - GET ###
+<script>
+    var head = document.head;
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = "https://177948.t.hyros.com/v1/lst/universal-script?ph=664ad84e5a8d71d02e5f8fe74e28bfe1eca5b5a982655b75fac5513b98d326d3&tag=!clicked&ref_url=" + encodeURICo
+✅ Tracking Script Get
+
+=== TESTING COMPLETE ===
+Created resources:
+  Lead Email: test-full-1770073268@hyros-test.com
+  Lead ID: 9e7f24a4c3e8736bf3ea45cc4c849e21c06a21be75b30494b11673cd3b6e2b94
+  Sale ID: 72c9fb06ff0246b69e9bf76be9fa9dfb
+  Call External ID: ext-call-1770073268
+  Call ID: cll-be508153041addfcac12de1c138bcff3f2b1584c90f63976d5aaacce359cc912

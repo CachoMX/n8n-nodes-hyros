@@ -392,9 +392,9 @@ export class Hyros implements INodeType {
 						const ids = this.getNodeParameter('ids', i) as string;
 						const qs: IDataObject = {};
 
-						// Format IDs with quotes
+						// Pass IDs directly without quotes - API expects: ids=id1,id2,id3
 						const idArray = ids.split(',').map(id => id.trim());
-						qs.ids = idArray.map(id => `"${id}"`).join(',');
+						qs.ids = idArray.join(',');
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/journey', {}, qs);
 						const journeys = (responseData as any).result || [];
