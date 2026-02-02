@@ -197,7 +197,16 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.1.4 (Current)
+### 2.1.5 (Current)
+- **CRITICAL FIX**: Fixed all GET endpoint response handling (15 bugs)
+- Fixed pagination to use pageId cursor instead of page numbers
+- Fixed User Info endpoint URL from /user to /user-info
+- All GET operations now properly extract .result field from API responses
+- Fixed Tracking Script to wrap plain text response
+- Fixed Domains to convert string array to objects
+- Verified all 34 endpoints work correctly with Hyros API
+
+### 2.1.4
 - Fix Tag Get All operation to handle API response structure correctly
 
 ### 2.1.3
