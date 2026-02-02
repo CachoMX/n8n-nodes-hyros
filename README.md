@@ -197,7 +197,10 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.1.3 (Current)
+### 2.1.4 (Current)
+- Fix Tag Get All operation to handle API response structure correctly
+
+### 2.1.3
 - Clean repository structure (moved internal docs to Docs/ folder)
 
 ### 2.1.2
