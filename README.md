@@ -197,7 +197,10 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.1.0 (Current)
+### 2.1.1 (Current)
+- Updated README version history
+
+### 2.1.0
 - Complete API implementation with all endpoints fixed and tested
 - Fixed 21 critical endpoint issues identified in comprehensive audit
 - Added 3 new resources: Tracking Script, Domains, and Stages
