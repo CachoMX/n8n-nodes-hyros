@@ -197,7 +197,13 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.1.1 (Current)
+### 2.1.3 (Current)
+- Clean repository structure (moved internal docs to Docs/ folder)
+
+### 2.1.2
+- Sync README version history
+
+### 2.1.1
 - Updated README version history
 
 ### 2.1.0
