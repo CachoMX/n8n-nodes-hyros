@@ -19,12 +19,6 @@ export const leadOperations: INodeProperties[] = [
 				action: 'Create a lead',
 			},
 			{
-				name: 'Get',
-				value: 'get',
-				description: 'Get a lead by email',
-				action: 'Get a lead',
-			},
-			{
 				name: 'Get Many',
 				value: 'getAll',
 				description: 'Get multiple leads with optional filtering',
@@ -35,6 +29,12 @@ export const leadOperations: INodeProperties[] = [
 				value: 'getJourney',
 				description: 'Get the complete customer journey for a lead',
 				action: 'Get lead journey',
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				description: 'Update an existing lead',
+				action: 'Update a lead',
 			},
 		],
 		default: 'create',
@@ -47,15 +47,72 @@ export const leadFields: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'Email address of the lead. If no email is entered, a phone number is required.',
+	},
+	// Update Lead - search parameter
+	{
+		displayName: 'Search By',
+		name: 'searchBy',
+		type: 'options',
 		required: true,
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['create', 'get', 'getJourney'],
+				operation: ['update'],
+			},
+		},
+		options: [
+			{
+				name: 'Email',
+				value: 'email',
+			},
+			{
+				name: 'ID',
+				value: 'id',
+			},
+			{
+				name: 'Phone',
+				value: 'phone',
+			},
+		],
+		default: 'email',
+		description: 'Parameter used to search for the lead to update',
+	},
+	{
+		displayName: 'Search Value',
+		name: 'searchValue',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['update'],
 			},
 		},
 		default: '',
-		description: 'Email address of the lead',
+		description: 'The email, ID, or phone value to search for the lead',
+	},
+	// Get Journey - IDs parameter
+	{
+		displayName: 'Lead IDs',
+		name: 'ids',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['getJourney'],
+			},
+		},
+		default: '',
+		description: 'Comma-separated list of lead IDs to retrieve journey information',
 	},
 	// Get Many Leads
 	{
@@ -131,11 +188,11 @@ export const leadFields: INodeProperties[] = [
 				description: 'Only leads whose join date is before this (ISO 8601 format)',
 			},
 			{
-				displayName: 'Page',
-				name: 'page',
-				type: 'number',
-				default: 1,
-				description: 'Page number for pagination',
+				displayName: 'Page ID',
+				name: 'pageId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the next page to be retrieved',
 			},
 		],
 	},
@@ -148,16 +205,21 @@ export const leadFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['lead'],
-				operation: ['create'],
+				operation: ['create', 'update'],
 			},
 		},
 		options: [
 			{
-				displayName: 'Phone',
-				name: 'phone',
+				displayName: 'Email',
+				name: 'email',
 				type: 'string',
 				default: '',
-				description: 'Phone number of the lead',
+				description: 'Email address of the lead (for update operation, this sets a new email)',
+				displayOptions: {
+					show: {
+						'/operation': ['update'],
+					},
+				},
 			},
 			{
 				displayName: 'First Name',
@@ -181,102 +243,80 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of tags to apply to the lead',
 			},
 			{
-				displayName: 'Source',
-				name: 'source',
+				displayName: 'Phone Numbers',
+				name: 'phoneNumbers',
 				type: 'string',
 				default: '',
-				description: 'Traffic source for the lead',
+				description: 'Comma-separated list of phone numbers. If no email is entered, at least one phone number is required.',
 			},
 			{
-				displayName: 'Sub Source',
-				name: 'subSource',
+				displayName: 'Lead IPs',
+				name: 'leadIps',
 				type: 'string',
 				default: '',
-				description: 'Sub source for more granular tracking',
+				description: 'Comma-separated list of IP addresses that will be used on the Ad attributing process',
 			},
 			{
-				displayName: 'IP Address',
-				name: 'ipAddress',
+				displayName: 'Stage',
+				name: 'stage',
 				type: 'string',
 				default: '',
-				description: 'IP address of the lead',
+				description: 'The name of a stage to be applied to the lead',
 			},
 			{
-				displayName: 'User Agent',
-				name: 'userAgent',
-				type: 'string',
-				default: '',
-				description: 'User agent string from the browser',
+				displayName: 'Ad Optimization Consent',
+				name: 'adOptimizationConsent',
+				type: 'options',
+				options: [
+					{
+						name: 'Granted',
+						value: 'GRANTED',
+					},
+					{
+						name: 'Denied',
+						value: 'DENIED',
+					},
+					{
+						name: 'Unspecified',
+						value: 'UNSPECIFIED',
+					},
+				],
+				default: 'UNSPECIFIED',
+				description: 'Ad optimization consent status',
 			},
 			{
-				displayName: 'Referrer',
-				name: 'referrer',
-				type: 'string',
-				default: '',
-				description: 'Referrer URL',
-			},
-			{
-				displayName: 'Landing Page',
-				name: 'landingPage',
-				type: 'string',
-				default: '',
-				description: 'Landing page URL',
-			},
-			{
-				displayName: 'Page URL',
-				name: 'pageUrl',
-				type: 'string',
-				default: '',
-				description: 'Current page URL',
-			},
-			{
-				displayName: 'HY ID',
-				name: 'hyId',
-				type: 'string',
-				default: '',
-				description: 'Hyros tracking ID from the cookie',
-			},
-			{
-				displayName: 'Click ID',
-				name: 'clickId',
-				type: 'string',
-				default: '',
-				description: 'Click ID for attribution',
-			},
-			{
-				displayName: 'FB Click ID',
-				name: 'fbclid',
-				type: 'string',
-				default: '',
-				description: 'Facebook click ID',
-			},
-			{
-				displayName: 'Google Click ID',
-				name: 'gclid',
-				type: 'string',
-				default: '',
-				description: 'Google click ID',
-			},
-			{
-				displayName: 'TikTok Click ID',
-				name: 'ttclid',
-				type: 'string',
-				default: '',
-				description: 'TikTok click ID',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
-			},
-			{
-				displayName: 'Timestamp',
-				name: 'timestamp',
-				type: 'dateTime',
-				default: '',
-				description: 'Timestamp of the lead creation (ISO 8601 format)',
+				displayName: 'Lead Stage',
+				name: 'leadStage',
+				type: 'fixedCollection',
+				default: {},
+				description: 'Lead stage to apply to the lead (for update operation)',
+				displayOptions: {
+					show: {
+						'/operation': ['update'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Stage Details',
+						name: 'stageDetails',
+						values: [
+							{
+								displayName: 'Name',
+								name: 'name',
+								type: 'string',
+								default: '',
+								description: 'Stage name',
+							},
+							{
+								displayName: 'Date',
+								name: 'date',
+								type: 'dateTime',
+								default: '',
+								description: 'Stage date (ISO 8601 format)',
+							},
+						],
+					},
+				],
 			},
 		],
 	},

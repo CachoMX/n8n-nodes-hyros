@@ -1,6 +1,6 @@
 import { INodeProperties } from 'n8n-workflow';
 
-export const adOperations: INodeProperties[] = [
+export const stagesOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -8,29 +8,29 @@ export const adOperations: INodeProperties[] = [
 		noDataExpression: true,
 		displayOptions: {
 			show: {
-				resource: ['ad'],
+				resource: ['stages'],
 			},
 		},
 		options: [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all ads for a platform',
-				action: 'Get all ads',
+				description: 'Get all lead stages',
+				action: 'Get all stages',
 			},
 		],
 		default: 'getAll',
 	},
 ];
 
-export const adFields: INodeProperties[] = [
+export const stagesFields: INodeProperties[] = [
 	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',
 		displayOptions: {
 			show: {
-				resource: ['ad'],
+				resource: ['stages'],
 				operation: ['getAll'],
 			},
 		},
@@ -43,7 +43,7 @@ export const adFields: INodeProperties[] = [
 		type: 'number',
 		displayOptions: {
 			show: {
-				resource: ['ad'],
+				resource: ['stages'],
 				operation: ['getAll'],
 				returnAll: [false],
 			},
@@ -63,58 +63,17 @@ export const adFields: INodeProperties[] = [
 		default: {},
 		displayOptions: {
 			show: {
-				resource: ['ad'],
+				resource: ['stages'],
 				operation: ['getAll'],
 			},
 		},
 		options: [
 			{
-				displayName: 'Integration Type',
-				name: 'integrationType',
-				type: 'options',
-				options: [
-					{
-						name: 'Facebook',
-						value: 'FACEBOOK',
-					},
-					{
-						name: 'Google',
-						value: 'GOOGLE',
-					},
-					{
-						name: 'TikTok',
-						value: 'TIKTOK',
-					},
-					{
-						name: 'Snapchat',
-						value: 'SNAPCHAT',
-					},
-					{
-						name: 'LinkedIn',
-						value: 'LINKEDIN',
-					},
-					{
-						name: 'Twitter',
-						value: 'TWITTER',
-					},
-					{
-						name: 'Pinterest',
-						value: 'PINTEREST',
-					},
-					{
-						name: 'Bing',
-						value: 'BING',
-					},
-				],
-				default: 'FACEBOOK',
-				description: 'Provider of the source ids',
-			},
-			{
-				displayName: 'Ad Source IDs',
-				name: 'adSourceIds',
+				displayName: 'Name',
+				name: 'name',
 				type: 'string',
 				default: '',
-				description: 'Comma-separated list of ad source IDs of the sources to be retrieved',
+				description: 'The name to search stages by',
 			},
 			{
 				displayName: 'Page ID',

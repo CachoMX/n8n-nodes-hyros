@@ -25,8 +25,8 @@ export const productOperations: INodeProperties[] = [
 
 export const productFields: INodeProperties[] = [
 	{
-		displayName: 'Product ID',
-		name: 'productId',
+		displayName: 'Name',
+		name: 'name',
 		type: 'string',
 		required: true,
 		displayOptions: {
@@ -36,12 +36,12 @@ export const productFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Unique product identifier',
+		description: 'Name of the product (required)',
 	},
 	{
-		displayName: 'Product Name',
-		name: 'productName',
-		type: 'string',
+		displayName: 'Price',
+		name: 'price',
+		type: 'number',
 		required: true,
 		displayOptions: {
 			show: {
@@ -49,8 +49,8 @@ export const productFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		default: '',
-		description: 'Product name',
+		default: 0,
+		description: 'Cost of the product (required)',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -66,13 +66,6 @@ export const productFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Price',
-				name: 'price',
-				type: 'number',
-				default: 0,
-				description: 'Product price',
-			},
-			{
 				displayName: 'Category',
 				name: 'category',
 				type: 'string',
@@ -80,53 +73,11 @@ export const productFields: INodeProperties[] = [
 				description: 'Product category',
 			},
 			{
-				displayName: 'Description',
-				name: 'description',
+				displayName: 'Packages',
+				name: 'packages',
 				type: 'string',
 				default: '',
-				description: 'Product description',
-			},
-			{
-				displayName: 'SKU',
-				name: 'sku',
-				type: 'string',
-				default: '',
-				description: 'Stock keeping unit',
-			},
-			{
-				displayName: 'Image URL',
-				name: 'imageUrl',
-				type: 'string',
-				default: '',
-				description: 'Product image URL',
-			},
-			{
-				displayName: 'URL',
-				name: 'url',
-				type: 'string',
-				default: '',
-				description: 'Product page URL',
-			},
-			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags',
-			},
-			{
-				displayName: 'Active',
-				name: 'active',
-				type: 'boolean',
-				default: true,
-				description: 'Whether the product is active',
-			},
-			{
-				displayName: 'Custom Fields',
-				name: 'customFields',
-				type: 'json',
-				default: '{}',
-				description: 'Custom fields as JSON object',
+				description: 'Comma-separated product packages (used for recurring sales attribution)',
 			},
 		],
 	},

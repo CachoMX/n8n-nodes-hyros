@@ -13,6 +13,7 @@ dist/
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 .DS_Store
@@ -26,8 +27,16 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Claude
-.claude/settings.local.json
+# Documentation (internal use only)
+Docs/
+
+# Testing files
+test-api.sh
+test-api.ps1
+quick-test.js
+last_response.json
+test-results.json
+TEST_REPORT.md
 
 # OS
 Thumbs.db

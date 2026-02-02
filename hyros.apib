@@ -1,6 +1,6 @@
 [comment]: <> (The markdown format of this file works properly in app.apiary.io)
 HOST: https://api.hyros.com/v1
-API_DOCS_VERSION: 1.31
+API_DOCS_VERSION: 1.34
 
 # Hyros
 
@@ -92,25 +92,25 @@ API_DOCS_VERSION: 1.31
 + `CANCELLED`
 + `NO_SHOW`
 
-## Leads [/api/v1.0/leads?ids="id1","id2","id3"&emails="email1","email2"&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}]
-### Retrieve Leads [GET]
+## Leads [/api/v1.0/leads]
+### Retrieve Leads [GET /api/v1.0/leads?ids={ids}&emails={emails}&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}]
 
 Search and retrieve leads by their join date, email or id.
 
-+ Attributes
++ Parameters
 
-    + ids (optional, array) - array of lead ids to be retrieved. At most 50 can be provided in a single request.
+    + ids (optional, array, `"id1","id2","id3"`) ... An array of lead ids to be retrieved. At most 50 can be provided in a single request.
 
-    + emails (optional, array) - array of emails or email prefixes to search leads by. At most 50 can be provided.
+    + emails (optional, array, `"email1","email2"`) ... An array of emails or email prefixes to search leads by. At most 50 can be provided.
 
-    + fromDate: `Example: 2021-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only leads whose join date is more recent than this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
+    + fromDate (optional, string, `Example: 2021-04-16T20:35:00-05:00`) ... An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only leads whose join date is more recent than this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
-    + toDate: `Example: 2021-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only leads whose join date is older that this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
+    + toDate (optional, string, `Example: 2021-04-16T20:35:00-05:00`) ... An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only leads whose join date is older that this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
-    + pageSize (optional, number) - The maximum number of leads to be retrieved in a single page.
+    + pageSize (optional, number) ... The maximum number of leads to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more leads left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more leads left to retrieve). If any of the other attributes of the request change, pagination will reset.
 
 
 + Request
@@ -178,7 +178,7 @@ Create or Update leads and their tags. If the applied Tag matches with that of a
 
 + Attributes
 
-    + email (optional, string) - email of the lead that will be created. If no email is entered, a phone number is required.
+    + email (optional, string) - email of the lead that will be created. **If no email is entered, a phone number is required.**
 
     + firstName (optional, string) - first name of the lead.
 
@@ -188,7 +188,7 @@ Create or Update leads and their tags. If the applied Tag matches with that of a
 
     + leadIps (optional, array[string]) - IPs of the lead that will be created. Will be used on the Ad attributing process. This array can be sent empty.
 
-    + phoneNumbers (optional, string, array[string]) - Phone numbers of the lead that will be created. Will be used on the Ad attributing process. This array can be sent empty but If no email is entered, a phone number is required.
+    + phoneNumbers (optional, string, array[string]) - Phone numbers of the lead that will be created. Will be used on the Ad attributing process. **This array can be sent empty but If no email is entered, a phone number is required.**
 
     + stage (optional, string) - The name of a stage to be applied to the lead
 
@@ -214,7 +214,8 @@ Create or Update leads and their tags. If the applied Tag matches with that of a
                 "phoneNumbers": [
                     "1105385366"
                 ],
-                "stage": "MQL"
+                "stage": "MQL",
+                "adOptimizationConsent": "GRANTED"    // GRANTED | DENIED | UNSPECIFIED
             }
 
 + Response 200 (application/json)
@@ -241,6 +242,77 @@ Create or Update leads and their tags. If the applied Tag matches with that of a
             {
                 "result": "ERROR",
                 "message": ["Missing required field: Email"]
+            }
+
+### Update Lead [PUT /api/v1.0/leads?email={lead@email.com}&id={leadId}&phone={leadPhone}]
+
+Update leads and their tags.
+
++ Parameters
+
+    + email (optional, string) - Email used to search for the lead to update.
+
+    + id (optional, string) - Id used to search for the lead to update
+
+    + phone (optional, string) - Phone used to search for the lead to update.
+
+
++ Request (application/json)
+
+    + Headers
+
+            API-Key: b12a19f4521d44abc8d613efca7f9c23c88
+
+    + Body
+
+            {
+                "email": "John@doe.com",          // New email
+                "firstName": "John",               // New first name
+                "lastName": "Doe",                 // New last name
+
+                "tags": [
+                    "!Tag1"
+                ],                    // Tags to apply to the lead
+
+                "leadIps": [
+                    "172.8.105.28"
+                ],                    // IPs to apply to the lead
+
+                "phoneNumbers": [
+                    "1105385366"
+                ],                    // Phone numbers to apply to the lead
+
+                "adOptimizationConsent": "GRANTED",  // GRANTED | DENIED | UNSPECIFIED
+
+                "leadStage": {                //Lead stage to apply to the lead
+                    "name": "leadStageNameCINCO",
+                    "date": "2025-11-13T14:00:00-03:00"
+                }
+            }
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "request_id": "78c6d764d40547928ae36fd2d0103252",
+                "result": "OK"
+            }
+
++ Response 400 (application/json)
+
+    + Possible errors:
+        + parameters:
+            + Missing required parameter: provide either 'id' or 'email' or 'phone'.
+        + phoneNumbers:
+            + The phone in the url request is not valid
+        + Unspecified:
+            + There was a problem while processing the request
+    + Body
+
+            {
+                "result": "ERROR",
+                "message": ["Missing required parameter: provide either 'leadId' or 'email' or 'phone']
             }
 
 ## Leads journey [/api/v1.0/leads/journey?ids="id1","id2","id2"]
@@ -586,26 +658,34 @@ Retrieve the details about you leads journeys using the lead ids.
             }
 
 
-## Sales [/api/v1.0/sales?isRecurringSale={isRecurring}&saleRefundedState={state}&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&ids="id1","id2"&emails="email1","email22"&leadIds="leadId1","leadId2"&productTags="tag1","tag2","tag2"]
+## Sales [/api/v1.0/sales?isRecurringSale={isRecurring}&saleRefundedState={state}&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&ids={ids}&emails={emails}&leadIds={leadIds}&productTags={productTags}]
 ### Retrieve sales [GET]
 
 Search and retrieve sales by their join date, email, lead id, product tag, id, and if is recurring or if is refunded.
 
-+ Attributes
++ Parameters
 
-    + ids (optional, array) - array of sales ids to be retrieved. At most 50 can be provided in a single request.
+    + ids (optional, array, `"id1","id2"`) ... Array of sales ids to be retrieved. At most 50 can be provided in a single request.
 
-    + emails (optional, array) - array of emails or email prefixes to search sales by. At most 50 can be provided.
+    + emails (optional, array, `"email1","email2"`) ... Array of emails or email prefixes to search sales by. At most 50 can be provided.
 
-    + leadIds (optional, array) - array of leadIds or leadId to search sales by. At most 50 can be provided.
+    + leadIds (optional, array, `"leadId1","leadId2"`) ... Array of leadIds or leadId to search sales by. At most 50 can be provided.
 
-    + productTags (optional, array) - array of productTags or product tag to search sales by. At most 20 can be provided.
+    + productTags (optional, array, `"tag1","tag2","tag2"`) ... Array of productTags or product tag to search sales by. At most 20 can be provided.
 
-    + isRecurringSale: Values: `RECURRING, NON_RECURRING, ALL` (optional, string) - indicates is the sales to search are recurring, non-recurring or both.
+    + isRecurringSale: (optional, string) - indicates if the sales to search are recurring, non-recurring or both.
         + Default: `ALL`
+        + Members
+            + RECURRING
+            + NON_RECURRING
+            + ALL
 
-    + saleRefundedState: Values: `REFUNDED, NON_REFUNDED, ALL` (optional, string) - indicates is the sales to search are refunded, non-refunded or both.
+    + saleRefundedState: (optional, string) - indicates if the sales to search are refunded, non-refunded or both.
         + Default: `ALL`
+        + Members
+            + REFUNDED
+            + NON_REFUNDED
+            + ALL
 
     + fromDate: `Example: 2021-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only sales whose join date is more recent than this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
@@ -832,7 +912,7 @@ Create an order with all necessary information. Additionally, creates the lead i
 
 + Attributes
 
-    + email (optional, string) - email associated with the lead that made the purchase. If no email is entered, a phone number is required.
+    + email (optional, string) - email associated with the lead that made the purchase. **If no email is entered, a phone number is required.**
 
     + parentEmail (optional, string) - email of the origin lead of the lead that made the purchase. If present, the lead with the email provided would be assigned as origin lead of the lead that made the purchase and the sale would be attributed to the origin lead.
 
@@ -844,7 +924,7 @@ Create an order with all necessary information. Additionally, creates the lead i
 
     + stage (optional, string) - The name of a stage to be applied to the customer's lead
 
-    + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that made the purchase. Will be used on the Ad attributing process. This array can be sent empty but If no email is entered, a phone number is required.
+    + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that made the purchase. Will be used on the Ad attributing process. **This array can be sent empty but If no email is entered, a phone number is required.**
 
     + orderId (optional, string) - identifier by which sales will be grouped. A default id will be assigned if it is not included. Only letters, numbers, underscores (_), hyphens (-), periods (.), and colons (:) are accepted, with no spaces allowed.
     + externalSubscriptionId (optional, string) - indicates which subscription it belongs to.
@@ -996,20 +1076,20 @@ Refund an order by order id and update the income of the lead.
                 "message": ["Api key not valid"]
             }
 
-## Calls [/api/v1.0/calls?ids="id1","id2","id2"&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&emails="email1@mail", "email2@mai2"&leadIds="leadId1", "leadId2"&productTags="tag1","tag2","tag3"&qualified={qualified}&qualificationStages="callQualificationParamName1", "callQualificationParamName2"]
+## Calls [/api/v1.0/calls?ids={ids}&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&emails={emails}&leadIds={leadIds}&productTags={productTags}&qualified={qualified}&qualificationStages={qualificationStages}]
 ### Retrieve calls [GET]
 
 Search and retrieve calls by their join date, email, lead id, product tag or id.
 
-+ Attributes
++ Parameters
 
-    + ids (optional, array) - array of calls ids to be retrieved. At most 50 can be provided in a single request.
+    + ids (optional, array, `"id1","id2","id2"`) ... Array of calls ids to be retrieved. At most 50 can be provided in a single request.
 
-    + emails (optional, array) - array of emails or email prefixes to search calls by. At most 50 can be provided.
+    + emails (optional, array, `"email1@mail", "email2@mail2"`) ... Array of emails or email prefixes to search calls by. At most 50 can be provided.
 
-    + leadIds (optional, array) - array of leadIds or leadId to search calls by. At most 50 can be provided.
+    + leadIds (optional, array, `"leadId1", "leadId2"`) ... Array of leadIds or leadId to search calls by. At most 50 can be provided.
 
-    + productTags (optional, array) - array of productTags or product tag to search calls by. At most 20 can be provided.
+    + productTags (optional, array, `"tag1","tag2","tag3"`) ... Array of productTags or product tag to search calls by. At most 20 can be provided.
 
     + fromDate: `Example: 2021-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only calls whose join date is more recent than this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
@@ -1020,11 +1100,9 @@ Search and retrieve calls by their join date, email, lead id, product tag or id.
 
     + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). If any of the other attributes of the request change, pagination will reset.
 
-    + qualified (optional, boolean) - a flag that indicates if the calls to be returned should be qualified or not.
+    + qualified (optional, boolean) - A flag that indicates if the calls to be returned should be qualified or not.
 
-    + qualificationStages (optional, array) - array of qualification stages names. At most 50 can be provided in a single request.
-
-    + state (optional, CallState) - indicates the call state to be assigned.
+    + qualificationStages (optional, array, `"callQualificationParamName1", "callQualificationParamName2"`) ... Array of qualification stages names. At most 50 can be provided in a single request.
 
 + Request
 
@@ -1042,6 +1120,8 @@ Search and retrieve calls by their join date, email, lead id, product tag or id.
                         "id": "cll-eec11d39e6ec1843a78418c925d2a42a44e9fba95638c9ceac41cc2c3362e8dd",
                         "tag": "$call131220221156",
                         "qualified": true,
+                        "name": "call 1",
+                        "externalId": "c1843a78418c925",
                         "score": 1.0,
                         "creationDate": "Fri Dec 16 08:51:20 ART 2022",
                         "state": "QUALIFIED",
@@ -1151,7 +1231,9 @@ Create a call with all necessary information. Additionally, creates the lead if 
 
     + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that made the call. Will be used on the Ad attributing process. This array can be sent empty.
 
-    + id (optional, string) - identifier by which the call will be grouped. A default id will be assigned if it is not included.
+    + externalId (optional, string) - unique identifier of the call coming from the external integration. If a call with the same externalId exists, it will be updated.
+
+    + id (optional, string) - DEPRECATED! Use externalId param instead. identifier by which the call will be grouped. A default id will be assigned if it is not included.
 
     + date: `Example: 2021-04-16T20:35:00` (optional, string) - date on which the transaction was processed. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
         + Default: Current date and time.
@@ -1212,14 +1294,18 @@ Update calls by their ids.
 
     + ids (required, array) - array of sales ids to be retrieved. At most 50 can be provided in a single request.
 
+    + externalIds (required, array) - array of sales externalIds to be retrieved. At most 50 can be provided in a single request.
+
+    + name (required, string) - indicates the call name to be assigned.
+
     + qualification (optional, string) - indicates the call qualification to be assigned.
 
     + state (optional, enum) - indicates the call state to be assigned.
-            + Members
-                + `QUALIFIED`
-                + `UNQUALIFIED`
-                + `CANCELLED`
-                + `NO_SHOW`
+        + Members
+            + QUALIFIED
+            + UNQUALIFIED
+            + CANCELLED
+            + NO_SHOW
 
     + qualified (optional, boolean) - DEPRECATED! Use state param instead. Indicates if the call will be qualified or not ().
 
@@ -1273,7 +1359,7 @@ Retrieves the required Facebook AdSet or Google Campaign attribution information
 
             API-Key: b12a19f4521d44abc8d613efca7f9c23c88
 
-+ Attributes
++ Parameters
 
     + attributionModel: last_click (required, enum) - the attribution model, one per request.
         + Members
@@ -1498,16 +1584,18 @@ Retrieves the required Ad account attribution information.
 
             API-Key: b12a19f4521d44abc8d613efca7f9c23c88
 
-+ Attributes
++ Parameters
 
-    + attributionModel: last_click (required, enum) - the attribution model, one per request.
+    + attributionModel: (required, enum)
+      The attribution model, one per request.
+
         + Members
             + `last_click`
             + `scientific`
             + `first_click`
     + startDate: `Example: 2020-05-12T10:00:00` (required, string) - the starting date to be taken to retrieve the attribution information. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
     + endDate: `Example: 2021-04-13T10:00:00` (required, string) - the ending date to be taken to retrieve the attribution information. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
-    + fields (required, string) - fields to indicate the information you want to obtain from the report, separated by a comma.
+    + fields (required, enum) - fields to indicate the information you want to obtain from the report, separated by a comma.
         + Members
             + `sales`
             + `revenue`
@@ -1782,24 +1870,33 @@ List all of your created tags.
                 "message": ["Api key not valid"]
             }
 
-# Sources [/api/v1.0/sources?adSourceIds="adSourceId1","adSourceId2"&includeOrganic={trueOrFalse}&includeDisregarded={trueOrFalse}&integrationTpe={type}&pageSize={size}&pageId={number}]
+# Sources [/api/v1.0/sources?adSourceIds={adSourcesIds}&includeOrganic={trueOrFalse}&includeDisregarded={trueOrFalse}&integrationType={type}&pageSize={size}&pageId={number}]
 ### List all sources [GET]
 Search and retrieve sources by their organic and disregarded status and by the adSpendType/adSpendId.
 
-+ Attributes
++ Parameters
 
-    + adSourceIds (optional, array[string]) - the ad source ids of the sources to be retrieved
+    + adSourceIds (optional, array[string], `"adSourceId1","adSourceId2"`) ... The ad source ids of the sources to be retrieved
 
-    + includeOrganic (optional, boolean)
+    + includeOrganic (optional, boolean) - Whether to include organic sources in the response.
 
-    + includeDisregarded (optional, boolean)
+    + includeDisregarded (optional, boolean) - Whether to include disregarded sources in the response.
 
-    + integrationType  Values: `FACEBOOK, GOOGLE, SNAPCHAT, TIKTOK, TWITTER, LINKEDIN, SNAPCHAT` (optional, string) provider of the source ids.
+    + integrationType (optional, enum[AdspendType])
+      Provider of the source ids.
+        + Members
+            + `FACEBOOK`
+            + `GOOGLE`
+            + `TIKTOK`
+            + `SNAPCHAT`
+            + `LINKEDIN`
+            + `TWITTER`
+            + `PINTEREST`
+            + `BING`
 
     + pageSize (optional, number) - The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
 
     + pageId (optional, string) - The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
-
 
 + Request
 
@@ -1863,19 +1960,30 @@ Search and retrieve sources by their organic and disregarded status and by the a
             }
 
 
-## Ads [/api/v1.0/ads?adSourceIds="adSourceId1","adSourceId2"&integrationTpe={type}&pageSize={size}&pageId={number}]
+## Ads [/api/v1.0/ads?adSourceIds={adSourceIds}&integrationType={type}&pageSize={size}&pageId={number}]
 ### List all ads [GET]
 
 Search and retrieve ads by their adSpendType/adSpendId.
 
-+ attributes
-    + adSourceIds: (optional, array) - the ad source ids of the sources to be retrieved.
++ Parameters
 
-    + integrationType:  Values: `FACEBOOK, GOOGLE, SNAPCHAT, TIKTOK, TWITTER, LINKEDIN, SNAPCHAT` (optional, string) provider of the source ids.
+    + integrationType (optional, enum[AdspendType])
+      Provider of the source ids.
+        + Members
+            + `FACEBOOK`
+            + `GOOGLE`
+            + `TIKTOK`
+            + `SNAPCHAT`
+            + `LINKEDIN`
+            + `TWITTER`
+            + `PINTEREST`
+            + `BING`
 
-    + pageSize: (optional, number) - The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
+    + adSourceIds (optional, array, `"adSourceId1","adSourceId2"`) ... The ad source ids of the sources to be retrieved.
 
-    + pageId: (optional, string) - The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageSize (optional, number) ... The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
+
+    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
 
 
 + Request
@@ -2256,7 +2364,7 @@ Also, optionally the click can contain data from the ad it comes from.
 
 Retrieve clicks belonging to a lead
 
-+ Attributes
++ Parameters
 
     + leadId - The lead id.
 
@@ -2265,6 +2373,10 @@ Retrieve clicks belonging to a lead
     + pageSize: (optional, number) - The maximum number of clicks to be retrieved in a single page. Should be between 0 and 250.
 
     + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more keyword left to retrieve). If any of the other attributes of the request change, pagination will reset.
+
+    + fromDate: `Example: 2025-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only clicks dated after this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
+
+    + toDate: `Example: 2025-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only clicks dated before this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
 + Request
 
@@ -2289,8 +2401,13 @@ Retrieve clicks belonging to a lead
                         "agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
                         "cartId": "d49b708b3df50505869ca54f026e7c97a4959b587605f14f91c7e289de9f80bd",
                         "deduplicationParams": {"fbpId": "1231332","fbPixelEventId": "12312"},
-                        "adSpendId": 112331
-                           },
+                        "adSpendId": 112331,
+                        "parsedParameters": {
+                            "fbc_id": "123123133122223",
+                            "h_ad_id": "1231312313133",
+                            "fbclid": "PAZXh0bgNhZW0BXhZGlXAasah9MO9gIBpqWrXXqXtSTUJOL1mCpAFwMwSVo7eP8scO-Gxkt_qHJNKckg6pLtpfm2OQ_aem_r93bw0lb3n_mguv86vI8LA"
+                        }
+                   },
                ],
                "nextPageId": "60846be6e2b1884a64d241caf085bf6c99fa59cc4e859d9a91f32333dc13dd03",
                "request_id": "9d3683d845ea4633984a39eb86e3f047"
@@ -2433,9 +2550,11 @@ Create a cart with all necessary information. Additionally, creates the lead if 
 
 Update a cart and its corresponding Lead with the information provided.
 
-+ Attributes
++ Parameters
 
     + cartId (required, string) - the ID of the cart to be updated.
+
+    + items (required, array[CartItem]) - list of items in the cart.
 
     + email (optional, string) - email associated with the lead that owns the cart.
 
@@ -2449,13 +2568,15 @@ Update a cart and its corresponding Lead with the information provided.
 
     + date: `Example: 2021-04-16T20:35:00` (optional, string) - date on which the transaction was processed. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
 
-    + priceFormat: `DECIMAL, INTEGER` (optional, string) - the sale items price format, default to DECIMAL if it is not included.
+    + priceFormat: (optional, string)
+      The sale items price format
+        + Default: `DECIMAL`
+        + Members
+            + `DECIMAL`
+            + `INTEGER`
 
     + currency: `EUR` (optional,string).
         + Default: Hyros account setup.
-
-    + items (required, array[CartItem]).
-
 
 + Request (application/json)
 
@@ -2648,7 +2769,7 @@ Search and retrieve user profile, user connected accounts and true tracking conf
 
 List all your keywords, or those associated with a specific Google Ad Group Id, if the adgroupId parameter is provided.
 
-+ Attributes
++ Parameters
 
     + adgroupId -  The ad group id.
 
@@ -2700,22 +2821,32 @@ List all your keywords, or those associated with a specific Google Ad Group Id, 
 
 
 ## Subscriptions [/api/v1.0/subscriptions]
-### Retrieve subscriptions [GET /api/v1.0/subscriptions?subscriptionStates="ACTIVE","CANCELED"&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&ids="id1","id2"&emails="email1","email22"&leadIds="leadId1","leadId2"&productTags="tag1","tag2","tag2"]
+### Retrieve subscriptions [GET /api/v1.0/subscriptions?subscriptionStates={subscriptionStates}&fromDate={startDate}&toDate={endDate}&pageSize={size}&pageId={number}&ids={ids}&emails={emails}&leadIds={leadIds}&productTags={productTags}]
 
 Search and retrieve subscriptions by their join start date, end date, email, lead id, product tag, id and states.
 
-+ Attributes
++ Parameters
 
-    + ids (optional, array) - array of subscriptions ids to be retrieved. At most 50 can be provided in a single request.
+    + ids (optional, array, `"id1", "id2"`) ... Array of subscriptions ids to be retrieved. At most 50 can be provided in a single request.
 
-    + emails (optional, array) - array of emails or email prefixes to search subscriptions by. At most 50 can be provided.
+    + emails (optional, array, `"email1", "email2"`) ... Array of emails or email prefixes to search subscriptions by. At most 50 can be provided.
 
-    + leadIds (optional, array) - array of leadIds or leadId to search subscriptions by. At most 50 can be provided.
+    + leadIds (optional, array, `"lead1", "lead2"`) ... Array of leadIds or leadId to search subscriptions by. At most 50 can be provided.
 
-    + productTags (optional, array) - array of productTags or product tag to search subscriptions by. At most 20 can be provided.
+    + productTags (optional, array, `"tag1", "tag2"`) ... Array of productTags or product tag to search subscriptions by. At most 20 can be provided.
 
-    + subscriptionStates (optional, SubscriptionStatus) - indicates the status of subscriptions to be searched for.
+    + subscriptionStates (optional, array[SubscriptionStatus]) - indicates the status of subscriptions to be searched for.
         + Default: empty, search all states.
+        + Members
+            + ACTIVE
+            + TRIALING
+            + CANCELED
+            + PAST_DUE
+            + INCOMPLETE
+            + INCOMPLETE_EXPIRED
+            + UNPAID
+            + COMPLETED
+            + PAUSED
 
     + fromDate: `Example: 2021-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only subscriptions whose join date is more recent than this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
@@ -2874,7 +3005,7 @@ Create an subscription with all necessary information. Additionally, creates the
 
 + Attributes
 
-    + email (optional, string) - email associated with the lead that owns the subscription. If no email is entered, a phone number is required.
+    + email (optional, string) - email associated with the lead that owns the subscription. **If no email is entered, a phone number is required.**
 
     + parentEmail (optional, string) - email of the origin lead of the lead that owns the subscription. If present, the lead with the email provided would be assigned as origin lead of the lead that owns the subscription and the subscriptions would be attributed to the origin lead.
 
@@ -2886,7 +3017,7 @@ Create an subscription with all necessary information. Additionally, creates the
 
     + stage (optional, string) - The name of a stage to be applied to the customer's lead
 
-    + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that owns the subscription. Will be used on the Ad attributing process. This array can be sent empty but If no email is entered, a phone number is required.
+    + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that owns the subscription. Will be used on the Ad attributing process. **At least one email or phone number is required.**
 
     + subscriptionId (optional, string) - id of subscription.
 
@@ -3071,4 +3202,115 @@ Update a subscription.
                 "result": "ERROR",
                 "message": ["Invalid date format. Please, read the API documentation"]
             }
+
+## Tracking Script [/api/v1.0/tracking-script]
+### Get Tracking Script [GET]
+
+Retrieves the tracking script for a given domain. If no domain is provided, it returns the default tracking script.
+
++ Attributes
+    + domain (optional, string) - The domain for which to retrieve the tracking script. If not provided, the default tracking script will be returned.
+
++ Request
+
+    + Headers
+
+            API-Key: b12a19f4521d44abc8d613efca7f9c23c88
+
++ Response 200 (text/plain)
+
+    + Body
+              <script>
+                  var head = document.head;
+                  var script = document.createElement('script');
+                  script.type = 'text/javascript';
+                  script.src = "https://api.hyros.com/v1/lst/universal-script?ph=a48210e63e83136228b90e18c16461c07ba3c7bee05ba64615ecae4edcf9d130&tag=!clicked&ref_url=" + encodeURIComponent(document.URL);
+                  head.appendChild(script);
+              </script>
+
++ Response 400 (text/plain)
+
+    + Possible errors:
+        + Invalid domain: Invalid domain.com
+
+    + Body (text/plain)
+
+               Tracking script error: Invalid domain: domain.com
+
+## Domains [/api/v1/domains]
+### Get Domains [GET]
+
+Retrieves a list of verified domains associated with the product.
+
++ Headers
+
+        API-Key: b12a19f4521d44abc8d613efca7f9c23c88
+
++ Response 200 (application/json)
+
+    + Body
+
+            ["domain1.example.com","domain2.example.com"]
+
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "result": "ERROR",
+                "message": ["Api key not valid"]
+            }
+
+## Stages [/api/v1.0/stages?pageSize={size}&pageId={number}&name={name}]
+### Retrieve Lead Stages [GET]
+
+Retrieves all lead stages for the account, along with the count of leads in each stage.
+
++ Parameters
+
+    + name (optional, string, `stage1`) ... The name to search stages by.
+
+    + pageSize (optional, number) - The maximum number of stages to be retrieved in a single page.
+        + Range: 1-250
+
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). If any of the other attributes of the request change, pagination will reset.
+
++ Request
+
+    + Headers
+
+            API-Key: b12a19f4521d44abc8d613efca7f9c23c88
+
++ Response 200 (application/json)
+
+    + Body
+
+            {
+                "result": [
+                    {
+                        "name": "SQL",
+                        "amount": 1,
+                    },
+                    {
+                        "name": "Java",
+                        "amount": 1,
+                    },
+                    {
+                        "name": "React",
+                        "amount": 1,
+                    }
+                ],
+                "nextPageId": "1073e129b360b78db3508bea584d1f295c7851c3d9b290308ac57528b6e38a21",
+                "request_id": "5696f9a3524e42318f3cdf40176e70e3"
+            }
+
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "result": "ERROR",
+                "message": ["Api key not valid"]
+            }
+
 
