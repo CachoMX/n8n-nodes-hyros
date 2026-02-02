@@ -789,7 +789,11 @@ export class Hyros implements INodeType {
 					// TAG OPERATIONS
 					if (operation === 'getAll') {
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/tags');
-						returnData.push(...(responseData as IDataObject[]));
+						// API returns { request_id, result: [...tags] }
+						const tags = (responseData as any).result || [];
+						// Convert tag strings to objects
+						const tagObjects = tags.map((tag: string) => ({ tag }));
+						returnData.push(...tagObjects);
 					}
 
 				} else if (resource === 'source') {
