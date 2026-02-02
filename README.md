@@ -197,7 +197,11 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.3.0 (Current)
+### 2.3.1 (Current)
+- Fixed DELETE operations to return complete API responses (3 final bugs)
+- All 33 endpoints now 100% match blueprint specification
+
+### 2.3.0
 - **FINAL RELEASE**: 100% Blueprint Compliance - All 33 endpoints verified
 - Fixed all POST/PUT response handling (13 bugs)
 - Fixed all DELETE operations to return complete responses (3 bugs)
