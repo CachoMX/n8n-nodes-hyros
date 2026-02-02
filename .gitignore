@@ -37,6 +37,12 @@ quick-test.js
 last_response.json
 test-results.json
 TEST_REPORT.md
+TESTS.md
+comprehensive-test.sh
+COMPREHENSIVE_TEST_RESULTS.txt
+test-all-endpoints.sh
+test-ids.env
+test-results-*.txt
 
 # OS
 Thumbs.db
