@@ -197,7 +197,16 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ## Version History
 
-### 2.0.3 (Current)
+### 2.1.0 (Current)
+- Complete API implementation with all endpoints fixed and tested
+- Fixed 21 critical endpoint issues identified in comprehensive audit
+- Added 3 new resources: Tracking Script, Domains, and Stages
+- Corrected required fields across all resources (Call, Product, Click, Subscription, Attribution, Lead, Order, Sales, Source, Ad, Cart)
+- Fixed parameter locations (query vs body) for all operations
+- Added missing UPDATE operation for Leads resource
+- All endpoints tested and validated with 100% pass rate
+
+### 2.0.3
 - Complete API coverage with all endpoints
 - Fixed all parameter mappings to match API specification
 - Added new resources: Tracking Script, Domains, Stages
