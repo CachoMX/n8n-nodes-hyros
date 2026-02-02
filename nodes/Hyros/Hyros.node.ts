@@ -626,6 +626,11 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						const qs: IDataObject = {};
 
+						// Validate that at least one of ids or externalIds is provided
+						if (!ids && !externalIds) {
+							throw new Error('Either IDs or External IDs must be provided for Call Update operation');
+						}
+
 						// PUT /calls uses query parameters
 						if (ids) {
 							qs.ids = ids;

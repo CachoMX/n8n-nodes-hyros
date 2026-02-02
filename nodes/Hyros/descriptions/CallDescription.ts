@@ -281,7 +281,6 @@ export const callFields: INodeProperties[] = [
 		displayName: 'IDs',
 		name: 'ids',
 		type: 'string',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['call'],
@@ -289,13 +288,12 @@ export const callFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Comma-separated call IDs to update (max 50)',
+		description: 'Comma-separated call IDs to update (max 50). Either IDs or External IDs must be provided.',
 	},
 	{
 		displayName: 'External IDs',
 		name: 'externalIds',
 		type: 'string',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['call'],
@@ -303,7 +301,7 @@ export const callFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Comma-separated call external IDs to update (max 50)',
+		description: 'Comma-separated call external IDs to update (max 50). Either IDs or External IDs must be provided.',
 	},
 	{
 		displayName: 'Name',
