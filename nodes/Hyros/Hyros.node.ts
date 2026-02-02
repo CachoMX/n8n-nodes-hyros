@@ -481,7 +481,7 @@ export class Hyros implements INodeType {
 					} else if (operation === 'delete') {
 						const saleId = this.getNodeParameter('saleId', i) as string;
 						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/sales/${saleId}`);
-						returnData.push({ success: true, saleId });
+						returnData.push({ success: true, result: (responseData as any).result, saleId });
 					}
 
 				} else if (resource === 'order') {
@@ -537,7 +537,7 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/orders/${orderId}`, {}, qs);
-						returnData.push({ success: true, orderId });
+						returnData.push({ success: true, result: (responseData as any).result, orderId });
 					}
 
 				} else if (resource === 'call') {
@@ -652,7 +652,7 @@ export class Hyros implements INodeType {
 					} else if (operation === 'delete') {
 						const callId = this.getNodeParameter('callId', i) as string;
 						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/calls/${callId}`);
-						returnData.push({ success: true, callId });
+						returnData.push({ success: true, result: (responseData as any).result, callId });
 					}
 
 				} else if (resource === 'attribution') {
