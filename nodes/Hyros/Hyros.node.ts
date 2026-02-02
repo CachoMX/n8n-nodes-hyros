@@ -384,11 +384,8 @@ export class Hyros implements INodeType {
 							const limit = this.getNodeParameter('limit', i) as number;
 							qs.pageSize = limit;
 							const responseData = await hyrosApiRequest.call(this, 'GET', '/leads', {}, qs);
-							if (Array.isArray(responseData)) {
-								returnData.push(...responseData);
-							} else {
-								returnData.push(responseData);
-							}
+							const leads = (responseData as any).result || [];
+							returnData.push(...leads);
 						}
 
 					} else if (operation === 'getJourney') {
@@ -400,7 +397,8 @@ export class Hyros implements INodeType {
 						qs.ids = idArray.map(id => `"${id}"`).join(',');
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/journey', {}, qs);
-						returnData.push(responseData);
+						const journeys = (responseData as any).result || [];
+					returnData.push(...journeys);
 					}
 
 				} else if (resource === 'sales') {
@@ -452,7 +450,8 @@ export class Hyros implements INodeType {
 							const limit = this.getNodeParameter('limit', i) as number;
 							qs.pageSize = limit;
 							const responseData = await hyrosApiRequest.call(this, 'GET', '/sales', {}, qs);
-							returnData.push(...(responseData as IDataObject[]));
+							const sales = (responseData as any).result || [];
+							returnData.push(...sales);
 						}
 
 					} else if (operation === 'update') {
@@ -617,7 +616,8 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/calls', {}, qs);
-						returnData.push(responseData);
+						const calls = (responseData as any).result || [];
+					returnData.push(...calls);
 
 					} else if (operation === 'update') {
 						const ids = this.getNodeParameter('ids', i) as string;
@@ -708,7 +708,8 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution', {}, qs);
-						returnData.push(responseData);
+						const attribution = (responseData as any).result || [];
+						returnData.push(...attribution);
 
 					} else if (operation === 'getAdAccountReport') {
 						const attributionModel = this.getNodeParameter('attributionModel', i) as string;
@@ -756,7 +757,8 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/ad-account', {}, qs);
-						returnData.push(responseData);
+						const attribution = (responseData as any).result || [];
+						returnData.push(...attribution);
 					}
 
 				} else if (resource === 'product') {
@@ -828,7 +830,8 @@ export class Hyros implements INodeType {
 							const limit = this.getNodeParameter('limit', i) as number;
 							qs.pageSize = limit;
 							const responseData = await hyrosApiRequest.call(this, 'GET', '/sources', {}, qs);
-							returnData.push(...(responseData as IDataObject[]));
+							const sources = (responseData as any).result || [];
+							returnData.push(...sources);
 						}
 					}
 
@@ -858,7 +861,8 @@ export class Hyros implements INodeType {
 							const limit = this.getNodeParameter('limit', i) as number;
 							qs.pageSize = limit;
 							const responseData = await hyrosApiRequest.call(this, 'GET', '/ads', {}, qs);
-							returnData.push(...(responseData as IDataObject[]));
+							const ads = (responseData as any).result || [];
+							returnData.push(...ads);
 						}
 					}
 
@@ -931,7 +935,8 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/clicks', {}, qs);
-						returnData.push(responseData);
+						const clicks = (responseData as any).result || [];
+						returnData.push(...clicks);
 					}
 
 				} else if (resource === 'cart') {
@@ -994,8 +999,10 @@ export class Hyros implements INodeType {
 				} else if (resource === 'userInfo') {
 					// USER INFO OPERATIONS
 					if (operation === 'get') {
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/user');
-						returnData.push(responseData);
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/user-info');
+						// API returns { request_id, result: {...} }
+						const userInfo = (responseData as any).result || responseData;
+						returnData.push(userInfo);
 					}
 
 				} else if (resource === 'keyword') {
@@ -1006,7 +1013,8 @@ export class Hyros implements INodeType {
 							adgroupId,
 						};
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/keywords', {}, qs);
-						returnData.push(responseData);
+						const keywords = (responseData as any).result || [];
+						returnData.push(...keywords);
 					}
 
 				} else if (resource === 'subscription') {
@@ -1050,7 +1058,8 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/subscriptions', {}, qs);
-						returnData.push(responseData);
+						const subscriptions = (responseData as any).result || [];
+						returnData.push(...subscriptions);
 
 					} else if (operation === 'create') {
 						const status = this.getNodeParameter('status', i) as string;
@@ -1131,13 +1140,16 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/tracking-script', {}, qs);
-						returnData.push(responseData);
+						// Response is plain text (HTML script), wrap it for n8n
+						returnData.push({ script: responseData });
 					}
 				} else if (resource === 'domains') {
 					// DOMAINS OPERATIONS
 					if (operation === 'getAll') {
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/domains');
-						returnData.push(...(responseData as IDataObject[]));
+						// API returns array of domain strings, convert to objects
+						const domains = (responseData as string[]).map(domain => ({ domain }));
+						returnData.push(...domains);
 					}
 				} else if (resource === 'stages') {
 					// STAGES OPERATIONS
@@ -1160,7 +1172,8 @@ export class Hyros implements INodeType {
 							const limit = this.getNodeParameter('limit', i) as number;
 							qs.pageSize = limit;
 							const responseData = await hyrosApiRequest.call(this, 'GET', '/stages', {}, qs);
-							returnData.push(...(responseData as IDataObject[]));
+							const stages = (responseData as any).result || [];
+							returnData.push(...stages);
 						}
 					}
 				}

@@ -55,19 +55,27 @@ export async function hyrosApiRequestAllItems(
 	let responseData;
 
 	qs.pageSize = 250; // Maximum page size
-	qs.page = 1;
 
 	do {
 		responseData = await hyrosApiRequest.call(this, method, endpoint, body, qs);
 
-		if (Array.isArray(responseData)) {
-			returnData.push(...responseData);
-			if (responseData.length < (qs.pageSize as number)) {
+		// Extract the result array from the response
+		const items = (responseData as any).result || [];
+
+		if (Array.isArray(items)) {
+			returnData.push(...items);
+
+			// Check if there's a next page
+			const nextPageId = (responseData as any).nextPageId;
+			if (nextPageId) {
+				qs.pageId = nextPageId;
+			} else {
+				// No more pages
 				break;
 			}
-			qs.page = (qs.page as number) + 1;
 		} else {
-			returnData.push(responseData);
+			// If result is not an array, push it and break
+			returnData.push(items);
 			break;
 		}
 	} while (true);
