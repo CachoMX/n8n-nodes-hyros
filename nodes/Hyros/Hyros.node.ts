@@ -458,6 +458,11 @@ export class Hyros implements INodeType {
 						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
 						const qs: IDataObject = {};
 
+						// Validate that ids parameter is provided
+						if (!updateFields.ids) {
+							throw new Error('IDs parameter is required for Sales Update operation');
+						}
+
 						// PUT /sales uses query parameters
 						if (updateFields.ids) {
 							qs.ids = updateFields.ids;
