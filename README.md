@@ -195,6 +195,15 @@ The node has been exhaustively tested with systematic validation:
 - 📋 **n8n Workflow:** Import [hyros-all-endpoints-test.json](hyros-all-endpoints-test.json) for complete testing examples
 - 🐛 **4 bugs found and fixed** during comprehensive testing (v2.3.2-2.3.5)
 
+### Known Limitations
+
+⚠️ **Lead Update Operation:** Currently returns 400/401 errors due to a bug in the Hyros API itself (not the node). This has been verified through direct API testing with curl. The node implementation is correct per API specification. A support ticket should be filed with Hyros if you need this functionality.
+
+Other documented limitations:
+- **Product Get All:** Endpoint may not exist in API v1.0 (404)
+- **Keyword Get All:** Requires Google V2 account integration
+- **Tag Delete:** Endpoint not available in current API version
+
 ### Supported Platforms
 - ✅ Facebook Ads
 - ✅ Google Ads (including Google v2)

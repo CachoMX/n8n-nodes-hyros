@@ -165,7 +165,7 @@
       "typeVersion": 1,
       "position": [300, 800],
       "id": "lead-update",
-      "name": "Lead - Update",
+      "name": "Lead - Update (Known API Bug - returns 400)",
       "credentials": {
         "hyrosApi": {
           "id": "aJ2u6uy3TF1hdN6B",
