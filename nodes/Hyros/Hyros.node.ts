@@ -417,10 +417,8 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						if (filters.leadIds) {
-							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
-							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
-						}
+						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
+						// Use emails parameter instead to filter by lead
 						if (filters.productTags) {
 							const productTags = (filters.productTags as string).split(',').map(t => t.trim());
 							qs.productTags = productTags.map(t => `"${t}"`).join(',');
@@ -588,10 +586,8 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						if (filters.leadIds) {
-							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
-							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
-						}
+						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
+						// Use emails parameter instead to filter by lead
 						if (filters.phoneNumbers) {
 							const phoneNumbers = (filters.phoneNumbers as string).split(',').map(p => p.trim());
 							qs.phoneNumbers = phoneNumbers.map(p => `"${p}"`).join(',');
@@ -1046,10 +1042,8 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						if (filters.leadIds) {
-							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
-							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
-						}
+						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
+						// Use emails parameter instead to filter by lead
 						if (filters.productTags) {
 							const productTags = (filters.productTags as string).split(',').map(t => t.trim());
 							qs.productTags = productTags.map(t => `"${t}"`).join(',');

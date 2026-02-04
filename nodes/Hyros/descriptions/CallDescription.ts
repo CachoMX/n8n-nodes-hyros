@@ -211,13 +211,16 @@ export const callFields: INodeProperties[] = [
 				default: '',
 				description: 'Comma-separated emails (max 50)',
 			},
-			{
-				displayName: 'Lead IDs',
-				name: 'leadIds',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated lead IDs (max 50)',
-			},
+			// Lead IDs parameter disabled - Hyros API expects internal numeric IDs that are not exposed
+			// The hash IDs returned by the API do not work with this parameter
+			// Use 'emails' parameter instead to filter by lead
+			// {
+			// 	displayName: 'Lead IDs',
+			// 	name: 'leadIds',
+			// 	type: 'string',
+			// 	default: '',
+			// 	description: 'Comma-separated lead IDs (max 50)',
+			// },
 			{
 				displayName: 'Phone Numbers',
 				name: 'phoneNumbers',
