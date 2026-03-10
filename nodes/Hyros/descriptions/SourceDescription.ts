@@ -13,6 +13,12 @@ export const sourceOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Create',
+				value: 'create',
+				description: 'Create a new source',
+				action: 'Create a source',
+			},
+			{
 				name: 'Get Many',
 				value: 'getAll',
 				description: 'Get all sources',
@@ -24,6 +30,151 @@ export const sourceOperations: INodeProperties[] = [
 ];
 
 export const sourceFields: INodeProperties[] = [
+	// ------ Create fields ------
+	{
+		displayName: 'Name',
+		name: 'name',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['source'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'Name of the source',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['source'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Account ID',
+				name: 'accountId',
+				type: 'string',
+				default: '',
+				description: 'Account ID (required if Integration Type is set)',
+			},
+			{
+				displayName: 'Ad Source ID',
+				name: 'adSourceId',
+				type: 'string',
+				default: '',
+				description: 'Ad source ID (required if Integration Type is set)',
+			},
+			{
+				displayName: 'Adspend Sub Type',
+				name: 'adspendSubType',
+				type: 'options',
+				options: [
+					{
+						name: 'Display',
+						value: 'DISPLAY',
+					},
+					{
+						name: 'Video',
+						value: 'VIDEO',
+					},
+				],
+				default: 'DISPLAY',
+				description: 'Adspend sub type (required if Integration Type is GOOGLE)',
+			},
+			{
+				displayName: 'Campaign ID',
+				name: 'campaignId',
+				type: 'string',
+				default: '',
+				description: 'Campaign ID (required if Integration Type is FACEBOOK)',
+			},
+			{
+				displayName: 'Category',
+				name: 'category',
+				type: 'string',
+				default: '',
+				description: 'Name of the category',
+			},
+			{
+				displayName: 'Goal',
+				name: 'goal',
+				type: 'string',
+				default: '',
+				description: 'Name of the goal',
+			},
+			{
+				displayName: 'Integration Type',
+				name: 'integrationType',
+				type: 'options',
+				options: [
+					{
+						name: 'Bing',
+						value: 'BING',
+					},
+					{
+						name: 'Facebook',
+						value: 'FACEBOOK',
+					},
+					{
+						name: 'Google',
+						value: 'GOOGLE',
+					},
+					{
+						name: 'LinkedIn',
+						value: 'LINKEDIN',
+					},
+					{
+						name: 'Pinterest',
+						value: 'PINTEREST',
+					},
+					{
+						name: 'Snapchat',
+						value: 'SNAPCHAT',
+					},
+					{
+						name: 'TikTok',
+						value: 'TIKTOK',
+					},
+					{
+						name: 'Twitter',
+						value: 'TWITTER',
+					},
+				],
+				default: 'FACEBOOK',
+				description: 'Provider of the source',
+			},
+			{
+				displayName: 'Is Disregard',
+				name: 'isDisregard',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the source is disregarded in attribution',
+			},
+			{
+				displayName: 'Is Organic',
+				name: 'isOrganic',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the source is organic',
+			},
+			{
+				displayName: 'Traffic Source',
+				name: 'trafficSource',
+				type: 'string',
+				default: '',
+				description: 'Name of the traffic source',
+			},
+		],
+	},
+	// ------ GetAll fields ------
 	{
 		displayName: 'Return All',
 		name: 'returnAll',

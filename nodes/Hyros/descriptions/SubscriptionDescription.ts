@@ -64,16 +64,13 @@ export const subscriptionFields: INodeProperties[] = [
 				default: '',
 				description: 'Comma-separated emails (max 50)',
 			},
-			// Lead IDs parameter disabled - Hyros API expects internal numeric IDs that are not exposed
-			// The hash IDs returned by the API do not work with this parameter
-			// Use 'emails' parameter instead to filter by lead
-			// {
-			// 	displayName: 'Lead IDs',
-			// 	name: 'leadIds',
-			// 	type: 'string',
-			// 	default: '',
-			// 	description: 'Comma-separated lead IDs (max 50)',
-			// },
+			{
+				displayName: 'Lead IDs',
+				name: 'leadIds',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated lead IDs (max 50)',
+			},
 			{
 				displayName: 'Product Tags',
 				name: 'productTags',
@@ -371,7 +368,7 @@ export const subscriptionFields: INodeProperties[] = [
 					{ name: 'Paused', value: 'PAUSED' },
 				],
 				default: 'ACTIVE',
-				description: 'Status of subscription',
+				description: 'Status of subscription. NOTE: When setting to CANCELED, Cancel At Date is required by the API.',
 			},
 			{
 				displayName: 'Start Date',
@@ -392,7 +389,7 @@ export const subscriptionFields: INodeProperties[] = [
 				name: 'cancelAtDate',
 				type: 'dateTime',
 				default: '',
-				description: 'Date on which the subscription was canceled (ISO 8601 format)',
+				description: 'Date on which the subscription was canceled (ISO 8601 format). Required when setting status to CANCELED.',
 			},
 			{
 				displayName: 'Trial Start Date',

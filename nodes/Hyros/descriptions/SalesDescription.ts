@@ -95,16 +95,13 @@ export const salesFields: INodeProperties[] = [
 				default: '',
 				description: 'Comma-separated list of emails or email prefixes to search sales by (max 50)',
 			},
-			// Lead IDs parameter disabled - Hyros API expects internal numeric IDs that are not exposed
-			// The hash IDs returned by the API (e.g., "2c761e9199b96efbe...") do not work with this parameter
-			// Use 'emails' parameter instead to filter sales by lead
-			// {
-			// 	displayName: 'Lead IDs',
-			// 	name: 'leadIds',
-			// 	type: 'string',
-			// 	default: '',
-			// 	description: 'Comma-separated list of lead IDs to search sales by (max 50)',
-			// },
+			{
+				displayName: 'Lead IDs',
+				name: 'leadIds',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of lead IDs to search sales by (max 50)',
+			},
 			{
 				displayName: 'Product Tags',
 				name: 'productTags',

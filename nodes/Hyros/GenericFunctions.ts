@@ -16,14 +16,41 @@ export async function hyrosApiRequest(
 	qs: IDataObject = {},
 ): Promise<any> {
 	const credentials = await this.getCredentials('hyrosApi');
+	const baseUrl = (credentials.baseUrl as string).replace(/\/+$/, '');
+	const apiKey = credentials.apiKey as string;
+	const fullUrl = `${baseUrl}/api/v1.0${endpoint}`;
+
+	// Workaround: n8n httpRequest drops/corrupts headers on PUT with both body and qs.
+	// Use native fetch to bypass n8n's request layer entirely for this case.
+	// IMPORTANT: Build query string manually — URL.searchParams encodes @ to %40 which Hyros rejects.
+	if (method === 'PUT' && Object.keys(body).length > 0 && Object.keys(qs).length > 0) {
+		try {
+			const queryString = Object.entries(qs).map(([k, v]) => `${k}=${v}`).join('&');
+			const response = await fetch(`${fullUrl}?${queryString}`, {
+				method: 'PUT',
+				headers: {
+					'API-Key': apiKey,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+			});
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(`HTTP ${response.status}: ${errorText}`);
+			}
+			return await response.json();
+		} catch (error) {
+			throw new NodeApiError(this.getNode(), error as any);
+		}
+	}
 
 	const options: IHttpRequestOptions = {
 		method,
 		body,
 		qs,
-		url: `${credentials.baseUrl}/api/v1.0${endpoint}`,
+		url: fullUrl,
 		headers: {
-			'API-Key': credentials.apiKey as string,
+			'API-Key': apiKey,
 			'Content-Type': 'application/json',
 		},
 		json: true,

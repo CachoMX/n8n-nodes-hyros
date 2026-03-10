@@ -309,17 +309,7 @@ export class Hyros implements INodeType {
 						const searchValue = this.getNodeParameter('searchValue', i) as string;
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 
-						const qs: IDataObject = {};
 						const body: IDataObject = {};
-
-						// Set search parameter
-						if (searchBy === 'email') {
-							qs.email = searchValue;
-						} else if (searchBy === 'id') {
-							qs.id = searchValue;
-						} else if (searchBy === 'phone') {
-							qs.phone = searchValue;
-						}
 
 						// Handle array fields
 						if (additionalFields.phoneNumbers) {
@@ -349,6 +339,15 @@ export class Hyros implements INodeType {
 
 						// Add remaining fields to body
 						Object.assign(body, additionalFields);
+
+						const qs: IDataObject = {};
+						if (searchBy === 'email') {
+							qs.email = searchValue;
+						} else if (searchBy === 'id') {
+							qs.id = searchValue;
+						} else if (searchBy === 'phone') {
+							qs.phone = searchValue;
+						}
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/leads', body, qs);
 						returnData.push({ success: true, result: (responseData as any).result });
@@ -417,8 +416,10 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
-						// Use emails parameter instead to filter by lead
+						if (filters.leadIds) {
+							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
+							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
+						}
 						if (filters.productTags) {
 							const productTags = (filters.productTags as string).split(',').map(t => t.trim());
 							qs.productTags = productTags.map(t => `"${t}"`).join(',');
@@ -586,8 +587,10 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
-						// Use emails parameter instead to filter by lead
+						if (filters.leadIds) {
+							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
+							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
+						}
 						if (filters.phoneNumbers) {
 							const phoneNumbers = (filters.phoneNumbers as string).split(',').map(p => p.trim());
 							qs.phoneNumbers = phoneNumbers.map(p => `"${p}"`).join(',');
@@ -712,6 +715,18 @@ export class Hyros implements INodeType {
 						if (additionalFields.newCustomerConfiguration) {
 							qs.newCustomerConfiguration = additionalFields.newCustomerConfiguration;
 						}
+						if (additionalFields.status) {
+							qs.status = additionalFields.status;
+						}
+						if (additionalFields.timeGroupingOption) {
+							qs.timeGroupingOption = additionalFields.timeGroupingOption;
+						}
+						if (additionalFields.pageSize) {
+							qs.pageSize = additionalFields.pageSize;
+						}
+						if (additionalFields.pageId) {
+							qs.pageId = additionalFields.pageId;
+						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution', {}, qs);
 						const attribution = (responseData as any).result || [];
@@ -761,6 +776,12 @@ export class Hyros implements INodeType {
 						if (additionalFields.dateTimeGroupingOption) {
 							qs.dateTimeGroupingOption = additionalFields.dateTimeGroupingOption;
 						}
+						if (additionalFields.pageSize) {
+							qs.pageSize = additionalFields.pageSize;
+						}
+						if (additionalFields.pageId) {
+							qs.pageId = additionalFields.pageId;
+						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/ad-account', {}, qs);
 						const attribution = (responseData as any).result || [];
@@ -806,7 +827,21 @@ export class Hyros implements INodeType {
 
 				} else if (resource === 'source') {
 					// SOURCE OPERATIONS
-					if (operation === 'getAll') {
+					if (operation === 'create') {
+						const name = this.getNodeParameter('name', i) as string;
+						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+
+						const body: IDataObject = {
+							name,
+						};
+
+						// Add optional fields
+						Object.assign(body, additionalFields);
+
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/sources', body);
+						returnData.push({ success: true, result: (responseData as any).result });
+
+					} else if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
 						const qs: IDataObject = {};
@@ -875,6 +910,7 @@ export class Hyros implements INodeType {
 				} else if (resource === 'customCost') {
 					// CUSTOM COST OPERATIONS
 					if (operation === 'create') {
+						const name = this.getNodeParameter('name', i) as string;
 						const startDate = this.getNodeParameter('startDate', i) as string;
 						const endDate = this.getNodeParameter('endDate', i) as string;
 						const frequency = this.getNodeParameter('frequency', i) as string;
@@ -887,6 +923,11 @@ export class Hyros implements INodeType {
 							cost,
 							tags,
 						};
+
+						// Add name only if provided (it's optional per API spec)
+						if (name) {
+							body.name = name;
+						}
 
 						// Add endDate only if provided (it's optional per API spec)
 						if (endDate) {
@@ -1042,8 +1083,10 @@ export class Hyros implements INodeType {
 							const emails = (filters.emails as string).split(',').map(e => e.trim());
 							qs.emails = emails.map(e => `"${e}"`).join(',');
 						}
-						// leadIds parameter removed - Hyros API expects internal numeric IDs not exposed in API responses
-						// Use emails parameter instead to filter by lead
+						if (filters.leadIds) {
+							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
+							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
+						}
 						if (filters.productTags) {
 							const productTags = (filters.productTags as string).split(',').map(t => t.trim());
 							qs.productTags = productTags.map(t => `"${t}"`).join(',');
@@ -1149,10 +1192,11 @@ export class Hyros implements INodeType {
 
 						// Tracking script returns text/plain, not JSON
 						const credentials = await this.getCredentials('hyrosApi');
+						const trackingBaseUrl = (credentials.baseUrl as string).replace(/\/+$/, '');
 						const options: any = {
 							method: 'GET',
 							qs,
-							url: `${credentials.baseUrl}/api/v1.0/tracking-script`,
+							url: `${trackingBaseUrl}/api/v1.0/tracking-script`,
 							headers: {
 								'API-Key': credentials.apiKey as string,
 							},

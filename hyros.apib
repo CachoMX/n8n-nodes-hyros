@@ -1,6 +1,6 @@
 [comment]: <> (The markdown format of this file works properly in app.apiary.io)
 HOST: https://api.hyros.com/v1
-API_DOCS_VERSION: 1.34
+API_DOCS_VERSION: 1.36
 
 # Hyros
 
@@ -9,7 +9,7 @@ API_DOCS_VERSION: 1.34
 + `200 OK` - Response to a successful GET, PUT, POST or DELETE.
 + `400 Bad Request` - Malformed request; form validation errors.
 + `401 Unauthorized` - Wrong Api-Key or no provided.
-+ `429 Too Many Requests` -  Amount of API requests per second exceeded.
++ `429 Too Many Requests` - Number of API requests per second exceeded.
 
 ### Accepted request
     + Response:
@@ -26,6 +26,28 @@ API_DOCS_VERSION: 1.34
             "result": "ERROR",
             "message": <List of errors>
         }
+
+## Rate Limiting
+
+All API requests are subject to rate limiting to ensure fair usage and system stability.
+
+### Default Limits
+
+| Limit Type | Requests | Window     |
+|------------|----------|------------|
+| Per Second | 30       | 1 second   |
+| Per Minute | 1000     | 60 seconds |
+
+### Rate Limit Response Headers
+
+Every API response includes headers with rate limit information:
+
+| Header | Description                                                                | Example |
+|--------|----------------------------------------------------------------------------|---------|
+| `X-RateLimit-Limit` | Rate limit policy showing all limits in format `capacity;w=window_seconds` | `30;w=1, 1000;w=60` |
+| `X-RateLimit-Remaining` | Number of requests remaining in the most restrictive window                | `25` |
+| `X-RateLimit-Reset` | Unix timestamp (seconds) when the rate limit will reset                    | `1707235200` |
+| `Retry-After` | Seconds to wait before retrying                                            | `1` |
 
 ## Data Structures
 [comment]: <> (Definition of the data structures used for apiary)
@@ -110,7 +132,7 @@ Search and retrieve leads by their join date, email or id.
     + pageSize (optional, number) ... The maximum number of leads to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more leads left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more leads left to retrieve). Any changes to other request parameters will reset the pagination.
 
 
 + Request
@@ -694,7 +716,7 @@ Search and retrieve sales by their join date, email, lead id, product tag, id, a
     + pageSize (optional, number) - The maximum number of sales to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more sales left to retrieve). Any changes to other request parameters will reset the pagination.
 
 
 + Request
@@ -757,7 +779,10 @@ Search and retrieve sales by their join date, email, lead id, product tag, id, a
                                 "adSourceId": "23843648148170123",
                                 "adAccountId": "887874684917514",
                                 "platform": "FACEBOOK"
-                            }
+                            },
+                            gclId: "24567781", //only for Google
+                            gbraId: "4525677", //only for Google
+                            wbraId: "4568789", //only for Google
                         },
                         "lastSource": {
                             "sourceLinkId": "8e5c10ea09ed899f9e7a386501b8003e7fe8a0429633b0c1bf647ce92f51433a",
@@ -783,7 +808,10 @@ Search and retrieve sales by their join date, email, lead id, product tag, id, a
                                 "adSourceId": "23843648148170123",
                                 "adAccountId": "887874684917514",
                                 "platform": "FACEBOOK"
-                            }
+                            },
+                            gclId: "24567781", //only for Google
+                            gbraId: "4525677", //only for Google
+                            wbraId: "4568789", //only for Google
                         },
                         "price": {
                             "price": 84.34,
@@ -1098,7 +1126,7 @@ Search and retrieve calls by their join date, email, lead id, product tag or id.
     + pageSize (optional, number) - The maximum number of calls to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). Any changes to other request parameters will reset the pagination.
 
     + qualified (optional, boolean) - A flag that indicates if the calls to be returned should be qualified or not.
 
@@ -1499,7 +1527,7 @@ Retrieves the required Facebook AdSet or Google Campaign attribution information
             + `prioritize_paid`
     + ignoreRecurringSales (optional, boolean) - Defines if the response will include or exclude recurring sales.
         + Default: false
-    + isAdAccountId (optional, boolean) - If true , the id placed in ids should be the ad account ID. All sources of the ad account will be included in the response, depending on the selected level.
+    + isAdAccountId (optional, boolean) - If true , the id placed in ids should be the ad account ID. All sources of the ad account will be paginated and included in the response, depending on the selected level.
         + Default: false
     + forecastingOption (optional, enum[string]) - This setting defines the way the LTV Forecast metric is calculated, either forecasting by using the first sale of a customer or attempting to use all of them. By default, only the first sale is used.
         + Default: `first_sale`
@@ -1512,6 +1540,31 @@ Retrieves the required Facebook AdSet or Google Campaign attribution information
             + `all_customers`
             + `only_returning_customers`
             + `only_unique_customers`
+    + status (optional, enum[string]) - Filters ad spend by status.
+        + Members
+            + `active`
+            + `paused`
+    + timeGroupingOption (optional, enum[string]) - Defines how the response will be grouped.
+        + Default: `source_link`
+        + Members
+            + `source_link`
+            + `day`
+            + `week`
+            + `month`
+            + `year`
+
+    + pageSize (optional, number) ... The maximum number of sources to be retrieved in a single page.
+        + Range: 1-250
+
+    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more sources left to retrieve). Any changes to other request parameters will reset the pagination.
+
++ Notes
+
+    + When `isAdAccountId` is `true` and `timeGroupingOption` is one of `DAY`, `WEEK`, `MONTH` or `YEAR`, the request will fail with the following error:
+        + `Invalid configuration: segmented reports are not supported when isAdAccount is enabled`
+
+    + When `status` is `active` or `paused` and `timeGroupingOption` is one of `DAY`, `WEEK`, `MONTH` or `YEAR`, the request will fail with the following error:
+        + `Invalid request: adspend status filtering is only supported when timeGroupingOption is SOURCE_LINK.`
 
 + Response 200 (application/json)
 
@@ -1566,6 +1619,9 @@ Retrieves the required Facebook AdSet or Google Campaign attribution information
             + There was a problem while processing the request
         + send the same request before the first one is ready:
             + Already processing a request for id: <id>
+         + timeGroupingOption:
+            + Invalid configuration: segmented reports are not supported when isAdAccount is enabled
+            + Invalid request: adspend status filtering is only supported when timeGroupingOption is SOURCE_LINK.
 
     + Body
 
@@ -1896,7 +1952,7 @@ Search and retrieve sources by their organic and disregarded status and by the a
 
     + pageSize (optional, number) - The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). Any changes to other request parameters will reset the pagination.
 
 + Request
 
@@ -1983,7 +2039,7 @@ Search and retrieve ads by their adSpendType/adSpendId.
 
     + pageSize (optional, number) ... The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
 
-    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) ... The id of the next page to be retrieved. This id is returned to the `nextPageId` field in every response (given that there are any more sales left to retrieve). Any changes to other request parameters will reset the pagination.
 
 
 + Request
@@ -2158,6 +2214,8 @@ Create a custom cost with all the necessary information.
 
 + Attributes
 
+    + name (optional, string) - A descriptive label for the cost (e.g., "Monthly Agency Fee"). This field is optional and may be omitted or left empty.
+
     + startDate (required, string) - The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
 
     + endDate (optional, string) - The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
@@ -2177,6 +2235,7 @@ Create a custom cost with all the necessary information.
     + Body
 
             {
+                "name": "Monthly Agency Fee",
                 "startDate": "2024-12-25T00:00:00.000Z",
                 "endDate": "2024-12-20T00:00:00.000Z",
                 "frequency": "DAILY",
@@ -2372,7 +2431,7 @@ Retrieve clicks belonging to a lead
 
     + pageSize: (optional, number) - The maximum number of clicks to be retrieved in a single page. Should be between 0 and 250.
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more keyword left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more keyword left to retrieve). Any changes to other request parameters will reset the pagination.
 
     + fromDate: `Example: 2025-04-16T20:35:00-05:00` (optional, string) - An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatted date. Only clicks dated after this will be retrieved. If the date does not include a timezone, the configured account timezone will be assumed.
 
@@ -2454,7 +2513,7 @@ Create a cart with all necessary information. Additionally, creates the lead if 
 
     + phoneNumbers (optional, string, array[string]) - phone numbers of the lead that owns the cart. Will be used on the Ad attributing process. This array can be sent empty.
 
-    + date: `CST timezone example: 2021-04-16T20:35:00-06:00` (optional, string) - date on which the transaction was processed. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). We also recommend to attach the desired timezone.
+    + date: `CST timezone example: 2021-04-16T20:35:00-06:00` (optional, string) - date on which the transaction was processed. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). We also recommend attaching the desired timezone.
         + Default: Current date and time.
 
     + priceFormat: `DECIMAL, INTEGER` (optional, string) - the sale items price format, default to DECIMAL if it is not included.
@@ -2775,7 +2834,7 @@ List all your keywords, or those associated with a specific Google Ad Group Id, 
 
     + pageSize: (optional, number) - The maximum number of sources to be retrieved in a single page. Should be between 0 and 250.
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more keyword left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more keywords left to retrieve). Any changes to other request parameters will reset the pagination.
 
 + Request
 
@@ -2855,7 +2914,7 @@ Search and retrieve subscriptions by their join start date, end date, email, lea
     + pageSize (optional, number) - The maximum number of subscriptions to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more subscriptions left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more subscriptions left to retrieve). Any changes to other request parameters will reset the pagination.
 
 
 + Request
@@ -2925,7 +2984,10 @@ Search and retrieve subscriptions by their join start date, end date, email, lea
                                 "adSourceId": "23843648148170123",
                                 "adAccountId": "887874684917514",
                                 "platform": "FACEBOOK"
-                            }
+                            },
+                            gclId: "24567781", //only for Google
+                            gbraId: "4525677", //only for Google
+                            wbraId: "4568789", //only for Google
                         },
                         "lastSource": {
                             "sourceLinkId": "8e5c10ea09ed899f9e7a386501b8003e7fe8a0429633b0c1bf647ce92f51433a",
@@ -2951,7 +3013,10 @@ Search and retrieve subscriptions by their join start date, end date, email, lea
                                 "adSourceId": "23843648148170123",
                                 "adAccountId": "887874684917514",
                                 "platform": "FACEBOOK"
-                            }
+                            },
+                            gclId: "24567781", //only for Google
+                            gbraId: "4525677", //only for Google
+                            wbraId: "4568789", //only for Google
                         },
                         "category": {
                             "id": "cat-b83d72b83a742f9bd8d93a2403ba3809",
@@ -3023,7 +3088,7 @@ Create an subscription with all necessary information. Additionally, creates the
 
     + name (optional, string) - name of subscription.
 
-    + status (required, enum[SubscriptionStatus]) - indicates the status of subscription.
+    + status (required, enum[SubscriptionStatus]) - indicates the status of the subscription.
 
     + startDate: `Example: 2021-04-16T20:35:00` (required, string) - date on which the subscription started. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
         + Default: Current date and time.
@@ -3038,7 +3103,7 @@ Create an subscription with all necessary information. Additionally, creates the
 
     + planId (optional, string) - unique identifier of the plan subscription coming from the external integration.
 
-    + price: `Example: 9.8` (required, number) -  subscription price.
+    + price: `Example: 9.8` (required, number) - subscription price.
 
     + periodicity: `Values: DAY, WEEK, MONTH, QUARTER, YEAR` (required, string) - the frequency at which a subscription is billed.
 
@@ -3130,7 +3195,7 @@ Update a subscription.
 
     + name (optional, string) - name of subscription.
 
-    + status (optional, enum[SubscriptionStatus]) - indicates the status of subscription.
+    + status (optional, enum[SubscriptionStatus]) - indicates the status of the subscription.
 
     + startDate: `Example: 2021-04-16T20:35:00` (optional, string) - date on which the subscription started. The date must be written in accordance with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
         + Default: Current date and time.
@@ -3273,7 +3338,7 @@ Retrieves all lead stages for the account, along with the count of leads in each
     + pageSize (optional, number) - The maximum number of stages to be retrieved in a single page.
         + Range: 1-250
 
-    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). If any of the other attributes of the request change, pagination will reset.
+    + pageId (optional, string) - The id of the next page to be retrieved. This id is returned in the `nextPageId` field in every response (given that there are any more calls left to retrieve). Any changes to other request parameters will reset the pagination.
 
 + Request
 

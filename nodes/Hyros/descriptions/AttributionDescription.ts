@@ -449,6 +449,80 @@ export const attributionFields: INodeProperties[] = [
 				description: 'Field to select the filter related with the new customer configuration you want from the report',
 			},
 			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'options',
+				options: [
+					{
+						name: 'Active',
+						value: 'active',
+					},
+					{
+						name: 'Paused',
+						value: 'paused',
+					},
+				],
+				default: 'active',
+				description: 'Filters ad spend by status. Only supported when Time Grouping Option is Source Link.',
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
+				},
+			},
+			{
+				displayName: 'Time Grouping Option',
+				name: 'timeGroupingOption',
+				type: 'options',
+				options: [
+					{
+						name: 'Source Link',
+						value: 'source_link',
+					},
+					{
+						name: 'Day',
+						value: 'day',
+					},
+					{
+						name: 'Week',
+						value: 'week',
+					},
+					{
+						name: 'Month',
+						value: 'month',
+					},
+					{
+						name: 'Year',
+						value: 'year',
+					},
+				],
+				default: 'source_link',
+				description: 'Defines how the response will be grouped. Not supported when Is Ad Account ID is enabled.',
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
+				},
+			},
+			{
+				displayName: 'Page Size',
+				name: 'pageSize',
+				type: 'number',
+				default: 50,
+				description: 'Maximum number of results per page (1-250)',
+				typeOptions: {
+					minValue: 1,
+					maxValue: 250,
+				},
+			},
+			{
+				displayName: 'Page ID',
+				name: 'pageId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the next page to retrieve (from nextPageId in response)',
+			},
+			{
 				displayName: 'Date Time Grouping Option',
 				name: 'dateTimeGroupingOption',
 				type: 'options',

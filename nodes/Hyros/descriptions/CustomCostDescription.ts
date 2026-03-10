@@ -26,6 +26,19 @@ export const customCostOperations: INodeProperties[] = [
 export const customCostFields: INodeProperties[] = [
 	// Create Custom Cost (POST /custom-costs)
 	{
+		displayName: 'Name',
+		name: 'name',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['customCost'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'A descriptive label for the cost (e.g., "Monthly Agency Fee"). Optional.',
+	},
+	{
 		displayName: 'Start Date',
 		name: 'startDate',
 		type: 'dateTime',
