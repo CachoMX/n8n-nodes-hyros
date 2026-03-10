@@ -197,12 +197,15 @@ The node has been exhaustively tested with systematic validation:
 
 ### Known Limitations
 
-⚠️ **Lead Update Operation:** Currently returns 400/401 errors due to a bug in the Hyros API itself (not the node). This has been verified through direct API testing with curl. The node implementation is correct per API specification. A support ticket should be filed with Hyros if you need this functionality.
+⚠️ **Lead Update Operation:** Partially working — updates succeed when `tags` field is included in the body, but sending only firstName/lastName/phoneNumbers without tags returns a 400 error. This is a server-side Hyros API bug (tracked in HPC-10694). Workaround: always include a `tags` field in your update requests.
+
+⚠️ **GET /leads Filters:** The email and id query parameters are ignored — the endpoint returns all leads unfiltered. This is a known API bug.
 
 Other documented limitations:
-- **Product Get All:** Endpoint may not exist in API v1.0 (404)
+- **Product Get All:** Endpoint not available in API v1.0 (404)
 - **Keyword Get All:** Requires Google V2 account integration
 - **Tag Delete:** Endpoint not available in current API version
+- **Eventual Consistency:** Updates take 30+ seconds to appear in GET requests
 
 ### Supported Platforms
 - ✅ Facebook Ads
@@ -216,7 +219,23 @@ Other documented limitations:
 
 ## Version History
 
-### 2.3.5 (Current)
+### 2.7.0 (Current)
+- Re-enabled leadIds filter for Sales, Calls, and Subscriptions after Hyros platform fix confirmed
+- Added missing Attribution API parameters (status, timeGroupingOption, pageSize, pageId)
+- Added optional name field for Custom Cost creation
+- Updated API blueprint to v1.36 with rate limiting documentation
+
+### 2.6.0
+- Comprehensive audit against API blueprint v1.36
+- Fixed Custom Cost frequency values and parameter corrections
+- Updated Subscription cancelAtDate field descriptions
+- Multiple parameter alignment fixes
+
+### 2.3.6
+- Removed non-functional leadIds parameter (re-enabled in v2.7.0)
+- Documented Lead Update API bug and known limitations
+
+### 2.3.5
 - **PRODUCTION READY**: Exhaustive testing of all 37+ endpoints completed
 - Fixed Custom Cost Create: endDate now optional, frequency values uppercase (DAILY, ONE_TIME)
 - Removed invalid frequency options (weekly, monthly not in API spec)
