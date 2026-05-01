@@ -391,7 +391,7 @@ Feel free to check the [issues page](https://github.com/CachoMX/n8n-nodes-hyros/
 
 ## 📄 License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+[MIT](./LICENSE.md)
 
 Copyright © 2024 [Carlos Aragon](https://carlosaragon.online/)
 

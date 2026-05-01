@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-hyros",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "n8n community node for Hyros API integration with complete endpoint coverage",
   "keywords": [
     "n8n",
@@ -26,9 +26,18 @@
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes credentials package.json",
-    "lintfix": "eslint nodes credentials package.json --fix",
+    "lint": "eslint --ext .ts nodes credentials && eslint package.json",
+    "lintfix": "eslint --ext .ts nodes credentials --fix && eslint package.json --fix",
+    "scan": "npx @n8n/scan-community-package n8n-nodes-hyros",
+    "release:check": "npm run lint && npm run build && npm run scan",
     "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "dist"
@@ -43,6 +52,7 @@
     ]
   },
   "devDependencies": {
+    "@types/node": "^20.19.39",
     "@typescript-eslint/parser": "^5.59.0",
     "eslint": "^8.40.0",
     "eslint-plugin-n8n-nodes-base": "^1.12.0",
@@ -52,7 +62,6 @@
     "typescript": "^5.0.4"
   },
   "peerDependencies": {
-    "n8n-workflow": "*"
-  },
-  "dependencies": {}
+    "n8n-workflow": "^1.0.0"
+  }
 }
