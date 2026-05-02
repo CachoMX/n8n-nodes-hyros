@@ -1,0 +1,27 @@
+name: Scan published package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'npm package spec to scan (e.g. n8n-nodes-hyros or n8n-nodes-hyros@2.7.1)'
+        required: false
+        default: 'n8n-nodes-hyros'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Run @n8n/scan-community-package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Run n8n community package scanner
+        run: npx -y @n8n/scan-community-package ${{ github.event.inputs.package || 'n8n-nodes-hyros' }}
