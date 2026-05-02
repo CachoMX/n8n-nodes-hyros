@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
 
       - name: Run n8n community package scanner
         run: npx -y @n8n/scan-community-package ${{ github.event.inputs.package || 'n8n-nodes-hyros' }}
