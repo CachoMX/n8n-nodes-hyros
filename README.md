@@ -219,7 +219,21 @@ Other documented limitations:
 
 ## Version History
 
-### 2.7.0 (Current)
+### 2.7.2 (Current)
+- Switched to `httpRequestWithAuthentication` in `GenericFunctions.ts` and the tracking script call to comply with the n8n community-package verifier
+- Removed manual `API-Key` header injection (now handled by the credential's `authenticate` block)
+- No behavioral change for end users — same endpoints, same auth, same payloads
+
+### 2.7.1
+- First release published from CI with npm provenance
+- Added GitHub Actions release workflow (`.github/workflows/release.yml`)
+- Added on-demand scan workflow (`.github/workflows/scan.yml`) that runs `@n8n/scan-community-package`
+- Added `release:check` script and tightened `peerDependencies.n8n-workflow` to `^1.0.0`
+- Added `engines.node: ">=20.15"` and `publishConfig.provenance: true`
+- Added `@types/node` (fixes build for native `fetch` workaround in `GenericFunctions.ts`)
+- Fixed README LICENSE link to point at this repo
+
+### 2.7.0
 - Re-enabled leadIds filter for Sales, Calls, and Subscriptions after Hyros platform fix confirmed
 - Added missing Attribution API parameters (status, timeGroupingOption, pageSize, pageId)
 - Added optional name field for Custom Cost creation

@@ -1197,9 +1197,6 @@ export class Hyros implements INodeType {
 							method: 'GET',
 							qs,
 							url: `${trackingBaseUrl}/api/v1.0/tracking-script`,
-							headers: {
-								'API-Key': credentials.apiKey as string,
-							},
 							json: false, // Important: response is text/plain, not JSON
 						};
 
@@ -1207,7 +1204,7 @@ export class Hyros implements INodeType {
 							delete options.qs;
 						}
 
-						const responseData = await this.helpers.httpRequest(options);
+						const responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
 						// Response is plain text (HTML script), wrap it for n8n
 						returnData.push({ script: responseData });
 					}

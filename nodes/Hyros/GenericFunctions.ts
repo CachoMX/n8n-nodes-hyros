@@ -50,7 +50,6 @@ export async function hyrosApiRequest(
 		qs,
 		url: fullUrl,
 		headers: {
-			'API-Key': apiKey,
 			'Content-Type': 'application/json',
 		},
 		json: true,
@@ -65,7 +64,7 @@ export async function hyrosApiRequest(
 	}
 
 	try {
-		return await this.helpers.httpRequest(options);
+		return await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
 	} catch (error) {
 		throw new NodeApiError(this.getNode(), error as any);
 	}
