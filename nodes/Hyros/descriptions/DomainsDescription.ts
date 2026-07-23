@@ -13,10 +13,10 @@ export const domainsOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Get All',
+				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all verified domains',
-				action: 'Get all domains',
+				description: 'Get many verified domains',
+				action: 'Get many domains',
 			},
 		],
 		default: 'getAll',

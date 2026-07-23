@@ -21,8 +21,8 @@ export const sourceOperations: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all sources',
-				action: 'Get all sources',
+				description: 'Get many sources',
+				action: 'Get many sources',
 			},
 		],
 		default: 'getAll',
@@ -227,13 +227,6 @@ export const sourceFields: INodeProperties[] = [
 				description: 'Comma-separated list of ad source IDs of the sources to be retrieved',
 			},
 			{
-				displayName: 'Include Organic',
-				name: 'includeOrganic',
-				type: 'boolean',
-				default: true,
-				description: 'Whether to include organic sources in the response',
-			},
-			{
 				displayName: 'Include Disregarded',
 				name: 'includeDisregarded',
 				type: 'boolean',
@@ -241,10 +234,21 @@ export const sourceFields: INodeProperties[] = [
 				description: 'Whether to include disregarded sources in the response',
 			},
 			{
+				displayName: 'Include Organic',
+				name: 'includeOrganic',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to include organic sources in the response',
+			},
+			{
 				displayName: 'Integration Type',
 				name: 'integrationType',
 				type: 'options',
 				options: [
+					{
+						name: 'Bing',
+						value: 'BING',
+					},
 					{
 						name: 'Facebook',
 						value: 'FACEBOOK',
@@ -254,32 +258,28 @@ export const sourceFields: INodeProperties[] = [
 						value: 'GOOGLE',
 					},
 					{
-						name: 'TikTok',
-						value: 'TIKTOK',
-					},
-					{
-						name: 'Snapchat',
-						value: 'SNAPCHAT',
-					},
-					{
 						name: 'LinkedIn',
 						value: 'LINKEDIN',
-					},
-					{
-						name: 'Twitter',
-						value: 'TWITTER',
 					},
 					{
 						name: 'Pinterest',
 						value: 'PINTEREST',
 					},
 					{
-						name: 'Bing',
-						value: 'BING',
+						name: 'Snapchat',
+						value: 'SNAPCHAT',
+					},
+					{
+						name: 'TikTok',
+						value: 'TIKTOK',
+					},
+					{
+						name: 'Twitter',
+						value: 'TWITTER',
 					},
 				],
 				default: 'FACEBOOK',
-				description: 'Provider of the source ids',
+				description: 'Provider of the source IDs',
 			},
 			{
 				displayName: 'Page ID',

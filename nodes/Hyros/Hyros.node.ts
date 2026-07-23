@@ -4,6 +4,9 @@ import {
 	INodeType,
 	INodeTypeDescription,
 	IDataObject,
+	JsonObject,
+	NodeApiError,
+	NodeConnectionTypes,
 	NodeOperationError,
 } from 'n8n-workflow';
 
@@ -119,8 +122,8 @@ export class Hyros implements INodeType {
 		defaults: {
 			name: 'Hyros',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'hyrosApi',
@@ -159,7 +162,7 @@ export class Hyros implements INodeType {
 						value: 'customCost',
 					},
 					{
-						name: 'Domains',
+						name: 'Domain',
 						value: 'domains',
 					},
 					{
@@ -179,7 +182,7 @@ export class Hyros implements INodeType {
 						value: 'product',
 					},
 					{
-						name: 'Sales',
+						name: 'Sale',
 						value: 'sales',
 					},
 					{
@@ -187,7 +190,7 @@ export class Hyros implements INodeType {
 						value: 'source',
 					},
 					{
-						name: 'Stages',
+						name: 'Stage',
 						value: 'stages',
 					},
 					{
@@ -271,6 +274,7 @@ export class Hyros implements INodeType {
 			...webhookSubscriptionOperations,
 			...webhookSubscriptionFields,
 		],
+		usableAsTool: true,
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -486,9 +490,8 @@ export class Hyros implements INodeType {
 						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
 						const qs: IDataObject = {};
 
-						// Validate that ids parameter is provided
 						if (!updateFields.ids) {
-							throw new Error('IDs parameter is required for Sales Update operation');
+							throw new NodeOperationError(this.getNode(), 'IDs parameter is required for Sales Update operation', { itemIndex: i });
 						}
 
 						// PUT /sales uses query parameters
@@ -664,9 +667,8 @@ export class Hyros implements INodeType {
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 						const qs: IDataObject = {};
 
-						// Validate that at least one of ids or externalIds is provided
 						if (!ids && !externalIds) {
-							throw new Error('Either IDs or External IDs must be provided for Call Update operation');
+							throw new NodeOperationError(this.getNode(), 'Either IDs or External IDs must be provided for Call Update operation', { itemIndex: i });
 						}
 
 						// PUT /calls uses query parameters
@@ -1322,7 +1324,9 @@ export class Hyros implements INodeType {
 					returnData.push({ error: errorMessage });
 					continue;
 				}
-				throw error;
+				throw error instanceof NodeApiError || error instanceof NodeOperationError
+					? error
+					: new NodeApiError(this.getNode(), error as JsonObject);
 			}
 		}
 

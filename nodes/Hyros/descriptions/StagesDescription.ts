@@ -15,8 +15,8 @@ export const stagesOperations: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all lead stages',
-				action: 'Get all stages',
+				description: 'Get many lead stages',
+				action: 'Get many stages',
 			},
 		],
 		default: 'getAll',
