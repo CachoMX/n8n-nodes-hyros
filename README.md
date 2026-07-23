@@ -5,14 +5,14 @@
 
 **Complete Hyros API integration for n8n with full endpoint coverage**
 
-Developed by **[Carlos Aragon](https://carlosaragon.online/)** - A comprehensive n8n community node that provides seamless integration with the Hyros advertising attribution and analytics platform.
+Developed by **[Carlos Aragon](https://carlosaragon.online/)** - A complete n8n community node that provides seamless integration with the Hyros advertising attribution and analytics platform.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
 ## ✨ Features
 
-- 🎯 **Complete API Coverage** - All 18 Hyros resources fully implemented
-- ✅ **34+ Operations** - Create, read, update, delete operations for all resources
+- 🎯 **Complete API Coverage** - All 19 Hyros resources fully implemented
+- ✅ **36 Operations** - Create, read, update, delete operations for all resources
 - 🔧 **Production Ready** - Exhaustively tested: 23 of 27 testable endpoints verified working
 - 📊 **Advanced Attribution** - Full support for attribution reports and analytics
 - 🔄 **Real-time Tracking** - Track leads, sales, calls, clicks, and conversions
@@ -57,7 +57,7 @@ This node requires a Hyros API Key. You can obtain your API key from your Hyros 
 This node provides complete coverage of the Hyros API with the following resources:
 
 ### Core Resources
-- **Leads** - Create, read, update leads and retrieve journey data
+- **Leads** - Create, read, update leads and retrieve journey data (filter by tags, add/remove tags)
 - **Sales** - Manage sales data and track conversions
 - **Orders** - Create and manage orders with items
 - **Calls** - Track and manage call events
@@ -83,6 +83,9 @@ This node provides complete coverage of the Hyros API with the following resourc
 - **Carts** - Manage cart events
 - **Keywords** - Retrieve keyword data
 - **Custom Costs** - Add custom cost data
+
+### Webhooks
+- **Webhook Subscriptions** - Create, list, and delete webhook subscriptions for events like `sale.attributed`, `sale.refunded`, `lead.opted.in`, `subscription.created`, and `subscription.status.changed`. Requires an API key with the webhook role enabled in the Hyros admin panel (without it the API returns 401). The Create response includes a one-time `secretKey` for validating the HMAC signature of deliveries.
 
 ## Operations
 
@@ -177,10 +180,10 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 | Feature | Coverage |
 |---------|----------|
-| Resources | ✅ All 18 resources |
-| Operations | ✅ All 34+ operations |
+| Resources | ✅ All 19 resources |
+| Operations | ✅ All 36 operations |
 | Parameters | ✅ Complete support |
-| Error Handling | ✅ Comprehensive |
+| Error Handling | ✅ Complete |
 | Pagination | ✅ Full support |
 | Type Safety | ✅ TypeScript |
 | Testing | ✅ Exhaustive validation (23/27 endpoints verified) |
@@ -192,20 +195,20 @@ The node has been exhaustively tested with systematic validation:
 - ✅ **Phase 2 (POST):** 5 passed - Create operations verified
 - ✅ **Phase 3 (PUT):** 3 passed - Update operations confirmed
 - ✅ **Phase 4 (DELETE):** 2 passed - Delete operations tested
-- 📋 **n8n Workflow:** Import [hyros-all-endpoints-test.json](hyros-all-endpoints-test.json) for complete testing examples
-- 🐛 **4 bugs found and fixed** during comprehensive testing (v2.3.2-2.3.5)
+- 🐛 **4 bugs found and fixed** during full testing (v2.3.2-2.3.5)
 
 ### Known Limitations
 
-⚠️ **Lead Update Operation:** Partially working — updates succeed when `tags` field is included in the body, but sending only firstName/lastName/phoneNumbers without tags returns a 400 error. This is a server-side Hyros API bug (tracked in HPC-10694). Workaround: always include a `tags` field in your update requests.
+⚠️ **Strict API validation (since Hyros API v1.38, July 2026):** unknown query parameters and body fields are rejected with a 400 error instead of being silently ignored. This node only sends documented parameters, but if you see `Unknown parameter`/`Unknown field` errors after a Hyros API change, update this package.
 
-⚠️ **GET /leads Filters:** The email and id query parameters are ignored — the endpoint returns all leads unfiltered. This is a known API bug.
+Historical issues now fixed server-side: Lead Update without a `tags` field (HPC-10694) and ignored GET /leads email/id filters both work correctly as of API v1.38 (verified live, July 2026).
 
 Other documented limitations:
-- **Product Get All:** Endpoint not available in API v1.0 (404)
+- **Product Get All:** Endpoint not available in API v1.0 (404); Hyros has announced it for their August 2026 release
 - **Keyword Get All:** Requires Google V2 account integration
 - **Tag Delete:** Endpoint not available in current API version
-- **Eventual Consistency:** Updates take 30+ seconds to appear in GET requests
+- **Eventual Consistency:** Writes are queued - created leads appear in GET requests after roughly 20 seconds, tag updates can take a few minutes (measured July 2026)
+- **Bundled blueprint:** The repo file `hyros.apib` documents API v1.36 and predates the v1.38 additions (tags filter, removeTags, webhook subscriptions). The current reference is https://api-docs.hyros.com/ai-context/rest-api.txt
 
 ### Supported Platforms
 - ✅ Facebook Ads
@@ -219,7 +222,17 @@ Other documented limitations:
 
 ## Version History
 
-### 2.7.2 (Current)
+### 2.8.0 (Current)
+- **New resource: Webhook Subscriptions** — Create, Get Many, and Delete operations for `/webhook-subscriptions`, covering all 8 event types including the new `sale.refunded`, `subscription.created`, and `subscription.status.changed`
+- **Lead Get Many: filter by tags** — new `Tags` filter using the API's new `tags` query parameter
+- **Lead Update: Remove Tags** — new field using the API's new `removeTags` body field for bidirectional tag management
+- **Lead Update: Stage compatibility fix** — the POST-only `stage` field is now mapped to `leadStage` on update; the API's new strict validation rejects unknown body fields, so workflows saved with the old Stage field keep working
+- Matches Hyros API spec v1.38 (strict request validation)
+- **Verifier fixes** - passes @n8n/scan-community-package 0.27.1: stopped shipping TypeScript declaration files in dist (filename-convention rule) and relaxed `peerDependencies.n8n-workflow` to `"*"` as the scanner now requires
+- **Strict-validation hardening** - removed the Phone Numbers filter from Call Get (GET /calls never supported it; the API now rejects it with 400, verified live) and the Page Size/Page ID options from the Ad Account attribution report (that endpoint has no pagination); blank values in Lead list fields (tags, phone numbers, IPs) no longer reach the API
+- **Safer deletes** - resource IDs are URL-encoded in DELETE paths, and empty IDs fail fast with a clear node error instead of hitting the API
+
+### 2.7.2
 - Switched to `httpRequestWithAuthentication` in `GenericFunctions.ts` and the tracking script call to comply with the n8n community-package verifier
 - Removed manual `API-Key` header injection (now handled by the credential's `authenticate` block)
 - No behavioral change for end users — same endpoints, same auth, same payloads
@@ -240,7 +253,7 @@ Other documented limitations:
 - Updated API blueprint to v1.36 with rate limiting documentation
 
 ### 2.6.0
-- Comprehensive audit against API blueprint v1.36
+- Full audit against API blueprint v1.36
 - Fixed Custom Cost frequency values and parameter corrections
 - Updated Subscription cancelAtDate field descriptions
 - Multiple parameter alignment fixes
@@ -301,7 +314,7 @@ Other documented limitations:
 
 ### 2.1.0
 - Complete API implementation with all endpoints fixed and tested
-- Fixed 21 critical endpoint issues identified in comprehensive audit
+- Fixed 21 critical endpoint issues identified in full audit
 - Added 3 new resources: Tracking Script, Domains, and Stages
 - Corrected required fields across all resources (Call, Product, Click, Subscription, Attribution, Lead, Order, Sales, Source, Ad, Cart)
 - Fixed parameter locations (query vs body) for all operations
@@ -313,7 +326,7 @@ Other documented limitations:
 - Fixed all parameter mappings to match API specification
 - Added new resources: Tracking Script, Domains, Stages
 - Improved error handling and validation
-- Added comprehensive field support for all resources
+- Added complete field support for all resources
 
 ### 2.0.2
 - Optimized logo to SVG format
@@ -416,7 +429,7 @@ This is a **community-maintained node** developed independently by Carlos Aragon
 ## 🙏 Acknowledgments
 
 - Thanks to the n8n community for the excellent workflow automation platform
-- Thanks to Hyros for providing a comprehensive API
+- Thanks to Hyros for providing a complete API
 - Thanks to all contributors and users of this node
 
 ---
