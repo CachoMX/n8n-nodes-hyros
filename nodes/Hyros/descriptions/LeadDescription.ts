@@ -47,6 +47,7 @@ export const leadFields: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		displayOptions: {
 			show: {
 				resource: ['lead'],
@@ -167,11 +168,25 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of emails to search (max 50)',
 			},
 			{
+				displayName: 'From Date',
+				name: 'fromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only leads whose join date is more recent than this (ISO 8601 format)',
+			},
+			{
 				displayName: 'IDs',
 				name: 'ids',
 				type: 'string',
 				default: '',
 				description: 'Comma-separated list of lead IDs (max 50)',
+			},
+			{
+				displayName: 'Page ID',
+				name: 'pageId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the next page to be retrieved',
 			},
 			{
 				displayName: 'Tags',
@@ -181,25 +196,11 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of tag names (max 50). Leads matching any of the tags are returned. Tags are matched exactly, including any prefix (e.g. !Tag1).',
 			},
 			{
-				displayName: 'From Date',
-				name: 'fromDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads whose join date is more recent than this (ISO 8601 format)',
-			},
-			{
 				displayName: 'To Date',
 				name: 'toDate',
 				type: 'dateTime',
 				default: '',
 				description: 'Only leads whose join date is before this (ISO 8601 format)',
-			},
-			{
-				displayName: 'Page ID',
-				name: 'pageId',
-				type: 'string',
-				default: '',
-				description: 'The ID of the next page to be retrieved',
 			},
 		],
 	},
@@ -217,9 +218,31 @@ export const leadFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Ad Optimization Consent',
+				name: 'adOptimizationConsent',
+				type: 'options',
+				options: [
+					{
+						name: 'Granted',
+						value: 'GRANTED',
+					},
+					{
+						name: 'Denied',
+						value: 'DENIED',
+					},
+					{
+						name: 'Unspecified',
+						value: 'UNSPECIFIED',
+					},
+				],
+				default: 'UNSPECIFIED',
+				description: 'Ad optimization consent status',
+			},
+			{
 				displayName: 'Email',
 				name: 'email',
 				type: 'string',
+				placeholder: 'name@email.com',
 				default: '',
 				description: 'Email address of the lead (for update operation, this sets a new email)',
 				displayOptions: {
@@ -243,70 +266,11 @@ export const leadFields: INodeProperties[] = [
 				description: 'Last name of the lead',
 			},
 			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags to apply to the lead',
-			},
-			{
-				displayName: 'Remove Tags',
-				name: 'removeTags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tags to remove from the lead',
-				displayOptions: {
-					show: {
-						'/operation': ['update'],
-					},
-				},
-			},
-			{
-				displayName: 'Phone Numbers',
-				name: 'phoneNumbers',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of phone numbers. If no email is entered, at least one phone number is required.',
-			},
-			{
 				displayName: 'Lead IPs',
 				name: 'leadIps',
 				type: 'string',
 				default: '',
 				description: 'Comma-separated list of IP addresses that will be used on the Ad attributing process',
-			},
-			{
-				displayName: 'Stage',
-				name: 'stage',
-				type: 'string',
-				default: '',
-				description: 'The name of a stage to be applied to the lead. On update, use Lead Stage instead.',
-				displayOptions: {
-					show: {
-						'/operation': ['create'],
-					},
-				},
-			},
-			{
-				displayName: 'Ad Optimization Consent',
-				name: 'adOptimizationConsent',
-				type: 'options',
-				options: [
-					{
-						name: 'Granted',
-						value: 'GRANTED',
-					},
-					{
-						name: 'Denied',
-						value: 'DENIED',
-					},
-					{
-						name: 'Unspecified',
-						value: 'UNSPECIFIED',
-					},
-				],
-				default: 'UNSPECIFIED',
-				description: 'Ad optimization consent status',
 			},
 			{
 				displayName: 'Lead Stage',
@@ -341,6 +305,44 @@ export const leadFields: INodeProperties[] = [
 						],
 					},
 				],
+			},
+			{
+				displayName: 'Phone Numbers',
+				name: 'phoneNumbers',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of phone numbers. If no email is entered, at least one phone number is required.',
+			},
+			{
+				displayName: 'Remove Tags',
+				name: 'removeTags',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of tags to remove from the lead',
+				displayOptions: {
+					show: {
+						'/operation': ['update'],
+					},
+				},
+			},
+			{
+				displayName: 'Stage',
+				name: 'stage',
+				type: 'string',
+				default: '',
+				description: 'The name of a stage to be applied to the lead. On update, use Lead Stage instead.',
+				displayOptions: {
+					show: {
+						'/operation': ['create'],
+					},
+				},
+			},
+			{
+				displayName: 'Tags',
+				name: 'tags',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of tags to apply to the lead',
 			},
 		],
 	},

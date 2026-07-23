@@ -2,6 +2,7 @@ import {
 	IAuthenticateGeneric,
 	ICredentialTestRequest,
 	ICredentialType,
+	Icon,
 	INodeProperties,
 } from 'n8n-workflow';
 
@@ -9,6 +10,7 @@ export class HyrosApi implements ICredentialType {
 	name = 'hyrosApi';
 	displayName = 'Hyros API';
 	documentationUrl = 'https://docs.hyros.com/';
+	icon: Icon = 'file:../nodes/Hyros/hyros.svg';
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',

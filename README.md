@@ -222,7 +222,10 @@ Other documented limitations:
 
 ## Version History
 
-### 2.8.1 (Current)
+### 2.8.2 (Current)
+- **Passes the new provenance source scan** - @n8n/scan-community-package now lints the GitHub source of provenance-signed packages with the strict @n8n/community-nodes ruleset; this release conforms: credential icon, `usableAsTool`, `NodeConnectionTypes` inputs/outputs, `NodeOperationError`/`NodeApiError` everywhere, singular resource labels, and alphabetized option lists (order-only; all stored `value`s unchanged, saved workflows unaffected)
+
+### 2.8.1
 - **Clean errors for unresolved expressions** - when an ID expression (e.g. `{{ $json.id }}`) resolves to undefined at runtime, Sales Delete, Order Refund, Call Delete, Webhook Subscription Delete, Lead Get Journey, and Subscription Update now fail fast with a clear node error ("Sale ID is required") instead of crashing with a TypeError. Found during live end-to-end testing in n8n.
 
 ### 2.8.0

@@ -15,8 +15,8 @@ export const adOperations: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all ads for a platform',
-				action: 'Get all ads',
+				description: 'Get many ads for a platform',
+				action: 'Get many ads',
 			},
 		],
 		default: 'getAll',
@@ -74,6 +74,10 @@ export const adFields: INodeProperties[] = [
 				type: 'options',
 				options: [
 					{
+						name: 'Bing',
+						value: 'BING',
+					},
+					{
 						name: 'Facebook',
 						value: 'FACEBOOK',
 					},
@@ -82,32 +86,28 @@ export const adFields: INodeProperties[] = [
 						value: 'GOOGLE',
 					},
 					{
-						name: 'TikTok',
-						value: 'TIKTOK',
-					},
-					{
-						name: 'Snapchat',
-						value: 'SNAPCHAT',
-					},
-					{
 						name: 'LinkedIn',
 						value: 'LINKEDIN',
-					},
-					{
-						name: 'Twitter',
-						value: 'TWITTER',
 					},
 					{
 						name: 'Pinterest',
 						value: 'PINTEREST',
 					},
 					{
-						name: 'Bing',
-						value: 'BING',
+						name: 'Snapchat',
+						value: 'SNAPCHAT',
+					},
+					{
+						name: 'TikTok',
+						value: 'TIKTOK',
+					},
+					{
+						name: 'Twitter',
+						value: 'TWITTER',
 					},
 				],
 				default: 'FACEBOOK',
-				description: 'Provider of the source ids',
+				description: 'Provider of the source IDs',
 			},
 			{
 				displayName: 'Ad Source IDs',

@@ -27,7 +27,7 @@ export const webhookSubscriptionOperations: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all webhook subscriptions',
+				description: 'Get many webhook subscriptions',
 				action: 'Get many webhook subscriptions',
 			},
 		],
