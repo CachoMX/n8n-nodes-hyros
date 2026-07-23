@@ -102,6 +102,11 @@ import {
 	stagesFields,
 } from './descriptions/StagesDescription';
 
+import {
+	webhookSubscriptionOperations,
+	webhookSubscriptionFields,
+} from './descriptions/WebhookSubscriptionDescription';
+
 export class Hyros implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Hyros',
@@ -201,6 +206,10 @@ export class Hyros implements INodeType {
 						name: 'User Info',
 						value: 'userInfo',
 					},
+					{
+						name: 'Webhook Subscription',
+						value: 'webhookSubscription',
+					},
 				],
 				default: 'lead',
 			},
@@ -258,6 +267,9 @@ export class Hyros implements INodeType {
 			// Stages
 			...stagesOperations,
 			...stagesFields,
+			// Webhook Subscription
+			...webhookSubscriptionOperations,
+			...webhookSubscriptionFields,
 		],
 	};
 
@@ -281,21 +293,16 @@ export class Hyros implements INodeType {
 
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 
-						// Handle array fields (phoneNumbers, leadIps, tags)
-						if (additionalFields.phoneNumbers) {
-							const phoneNumbers = (additionalFields.phoneNumbers as string).split(',').map(p => p.trim());
-							body.phoneNumbers = phoneNumbers;
-							delete additionalFields.phoneNumbers;
-						}
-						if (additionalFields.leadIps) {
-							const leadIps = (additionalFields.leadIps as string).split(',').map(ip => ip.trim());
-							body.leadIps = leadIps;
-							delete additionalFields.leadIps;
-						}
-						if (additionalFields.tags) {
-							const tags = (additionalFields.tags as string).split(',').map(t => t.trim());
-							body.tags = tags;
-							delete additionalFields.tags;
+						// Empty strings must not reach the API: strict validation (v1.38) rejects
+						// a string where these fields expect an array.
+						for (const field of ['phoneNumbers', 'leadIps', 'tags']) {
+							if (additionalFields[field] !== undefined) {
+								const values = String(additionalFields[field]).split(',').map(v => v.trim()).filter(v => v.length > 0);
+								if (values.length > 0) {
+									body[field] = values;
+								}
+								delete additionalFields[field];
+							}
 						}
 
 						// Add remaining fields
@@ -311,30 +318,41 @@ export class Hyros implements INodeType {
 
 						const body: IDataObject = {};
 
-						// Handle array fields
-						if (additionalFields.phoneNumbers) {
-							const phoneNumbers = (additionalFields.phoneNumbers as string).split(',').map(p => p.trim());
-							body.phoneNumbers = phoneNumbers;
-							delete additionalFields.phoneNumbers;
-						}
-						if (additionalFields.leadIps) {
-							const leadIps = (additionalFields.leadIps as string).split(',').map(ip => ip.trim());
-							body.leadIps = leadIps;
-							delete additionalFields.leadIps;
-						}
-						if (additionalFields.tags) {
-							const tags = (additionalFields.tags as string).split(',').map(t => t.trim());
-							body.tags = tags;
-							delete additionalFields.tags;
+						// Empty strings must not reach the API: strict validation (v1.38) rejects
+						// a string where these fields expect an array.
+						for (const field of ['phoneNumbers', 'leadIps', 'tags', 'removeTags']) {
+							if (additionalFields[field] !== undefined) {
+								const values = String(additionalFields[field]).split(',').map(v => v.trim()).filter(v => v.length > 0);
+								if (values.length > 0) {
+									body[field] = values;
+								}
+								delete additionalFields[field];
+							}
 						}
 
-						// Handle leadStage object
 						if (additionalFields.leadStage) {
 							const leadStage = additionalFields.leadStage as IDataObject;
 							if (leadStage.stageDetails) {
-								body.leadStage = leadStage.stageDetails;
+								const stageDetails = { ...(leadStage.stageDetails as IDataObject) };
+								// A blank Date from the UI must not reach the API: strict validation
+								// (v1.38) may reject an empty date string.
+								if (!stageDetails.date) {
+									delete stageDetails.date;
+								}
+								if (stageDetails.name) {
+									body.leadStage = stageDetails;
+								}
 							}
 							delete additionalFields.leadStage;
+						}
+						// PUT /leads rejects the POST-only `stage` field since strict validation (v1.38);
+						// map it to leadStage so workflows saved before 2.8.0 keep working. The delete is
+						// unconditional: an empty stored value must not leak into the body either.
+						if (additionalFields.stage !== undefined) {
+							if (additionalFields.stage && !body.leadStage) {
+								body.leadStage = { name: additionalFields.stage };
+							}
+							delete additionalFields.stage;
 						}
 
 						// Add remaining fields to body
@@ -365,6 +383,12 @@ export class Hyros implements INodeType {
 						if (filters.ids) {
 							const ids = (filters.ids as string).split(',').map(id => id.trim());
 							qs.ids = ids.map(id => `"${id}"`).join(',');
+						}
+						if (filters.tags) {
+							const tags = (filters.tags as string).split(',').map(t => t.trim()).filter(t => t.length > 0);
+							if (tags.length > 0) {
+								qs.tags = tags.map(t => `"${t}"`).join(',');
+							}
 						}
 						if (filters.fromDate) {
 							qs.fromDate = filters.fromDate;
@@ -483,9 +507,12 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
-						const saleId = this.getNodeParameter('saleId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/sales/${saleId}`);
-						returnData.push({ success: true, result: (responseData as any).result, saleId });
+						const saleId = (this.getNodeParameter('saleId', i) as string).trim();
+						if (!saleId) {
+							throw new NodeOperationError(this.getNode(), 'Sale ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/sales/${encodeURIComponent(saleId)}`);
+						returnData.push({ success: true, result: (responseData as any)?.result, saleId });
 					}
 
 				} else if (resource === 'order') {
@@ -532,7 +559,10 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'refund') {
-						const orderId = this.getNodeParameter('orderId', i) as string;
+						const orderId = (this.getNodeParameter('orderId', i) as string).trim();
+						if (!orderId) {
+							throw new NodeOperationError(this.getNode(), 'Order ID is required', { itemIndex: i });
+						}
 						const qs: IDataObject = {};
 
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
@@ -540,8 +570,8 @@ export class Hyros implements INodeType {
 							qs.refundedAmount = additionalFields.refundedAmount;
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/orders/${orderId}`, {}, qs);
-						returnData.push({ success: true, result: (responseData as any).result, orderId });
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/orders/${encodeURIComponent(orderId)}`, {}, qs);
+						returnData.push({ success: true, result: (responseData as any)?.result, orderId });
 					}
 
 				} else if (resource === 'call') {
@@ -591,10 +621,9 @@ export class Hyros implements INodeType {
 							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim());
 							qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
 						}
-						if (filters.phoneNumbers) {
-							const phoneNumbers = (filters.phoneNumbers as string).split(',').map(p => p.trim());
-							qs.phoneNumbers = phoneNumbers.map(p => `"${p}"`).join(',');
-						}
+						// phoneNumbers is deliberately NOT forwarded: GET /calls does not document it
+						// and strict validation (v1.38) rejects it with 400 Unknown parameter
+						// (verified live 2026-07-23). Stored filter values from old workflows are ignored.
 						if (filters.productTags) {
 							const productTags = (filters.productTags as string).split(',').map(t => t.trim());
 							qs.productTags = productTags.map(t => `"${t}"`).join(',');
@@ -659,9 +688,12 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
-						const callId = this.getNodeParameter('callId', i) as string;
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/calls/${callId}`);
-						returnData.push({ success: true, result: (responseData as any).result, callId });
+						const callId = (this.getNodeParameter('callId', i) as string).trim();
+						if (!callId) {
+							throw new NodeOperationError(this.getNode(), 'Call ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/calls/${encodeURIComponent(callId)}`);
+						returnData.push({ success: true, result: (responseData as any)?.result, callId });
 					}
 
 				} else if (resource === 'attribution') {
@@ -776,12 +808,8 @@ export class Hyros implements INodeType {
 						if (additionalFields.dateTimeGroupingOption) {
 							qs.dateTimeGroupingOption = additionalFields.dateTimeGroupingOption;
 						}
-						if (additionalFields.pageSize) {
-							qs.pageSize = additionalFields.pageSize;
-						}
-						if (additionalFields.pageId) {
-							qs.pageId = additionalFields.pageId;
-						}
+						// pageSize/pageId are deliberately NOT forwarded: GET /attribution/ad-account
+						// documents no pagination and strict validation (v1.38) 400s on unknown params.
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/ad-account', {}, qs);
 						const attribution = (responseData as any).result || [];
@@ -1216,6 +1244,42 @@ export class Hyros implements INodeType {
 						const domains = (responseData as string[]).map(domain => ({ domain }));
 						returnData.push(...domains);
 					}
+				} else if (resource === 'webhookSubscription') {
+					// WEBHOOK SUBSCRIPTION OPERATIONS
+					if (operation === 'create') {
+						const name = this.getNodeParameter('name', i) as string;
+						const targetUrl = this.getNodeParameter('targetUrl', i) as string;
+						const eventTypes = this.getNodeParameter('eventTypes', i) as string[];
+
+						// required:true on a multiOptions does not stop an empty selection in the n8n UI
+						if (!Array.isArray(eventTypes) || eventTypes.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one event type is required', { itemIndex: i });
+						}
+
+						const body: IDataObject = {
+							name,
+							targetUrl,
+							eventTypes,
+						};
+
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/webhook-subscriptions', body);
+						// The result carries the one-time secretKey; return it as-is so users can store it.
+						returnData.push((responseData as any)?.result || responseData);
+
+					} else if (operation === 'getAll') {
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/webhook-subscriptions');
+						const subscriptions = (responseData as any).result || [];
+						returnData.push(...subscriptions);
+
+					} else if (operation === 'delete') {
+						const externalId = (this.getNodeParameter('externalId', i) as string).trim();
+						if (!externalId) {
+							throw new NodeOperationError(this.getNode(), 'External ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/webhook-subscriptions/${encodeURIComponent(externalId)}`);
+						returnData.push({ success: true, result: (responseData as any)?.result, externalId });
+					}
+
 				} else if (resource === 'stages') {
 					// STAGES OPERATIONS
 					if (operation === 'getAll') {

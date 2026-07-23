@@ -219,13 +219,6 @@ export const callFields: INodeProperties[] = [
 				description: 'Comma-separated lead IDs (max 50)',
 			},
 			{
-				displayName: 'Phone Numbers',
-				name: 'phoneNumbers',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated phone numbers',
-			},
-			{
 				displayName: 'Product Tags',
 				name: 'productTags',
 				type: 'string',

@@ -118,6 +118,6 @@ export const customCostFields: INodeProperties[] = [
 			},
 		},
 		default: [],
-		description: 'Tags for attribution (max 20)',
+		description: 'Tags for attribution (max 10)',
 	},
 ];

@@ -509,10 +509,15 @@ export const attributionFields: INodeProperties[] = [
 				name: 'pageSize',
 				type: 'number',
 				default: 50,
-				description: 'Maximum number of results per page (1-250)',
+				description: 'Maximum number of results per page (1-250). Only supported by the ads report.',
 				typeOptions: {
 					minValue: 1,
 					maxValue: 250,
+				},
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
 				},
 			},
 			{
@@ -520,7 +525,12 @@ export const attributionFields: INodeProperties[] = [
 				name: 'pageId',
 				type: 'string',
 				default: '',
-				description: 'The ID of the next page to retrieve (from nextPageId in response)',
+				description: 'The ID of the next page to retrieve (from nextPageId in response). Only supported by the ads report.',
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
+				},
 			},
 			{
 				displayName: 'Date Time Grouping Option',

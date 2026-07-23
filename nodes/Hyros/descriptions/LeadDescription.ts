@@ -174,6 +174,13 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of lead IDs (max 50)',
 			},
 			{
+				displayName: 'Tags',
+				name: 'tags',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of tag names (max 50). Leads matching any of the tags are returned. Tags are matched exactly, including any prefix (e.g. !Tag1).',
+			},
+			{
 				displayName: 'From Date',
 				name: 'fromDate',
 				type: 'dateTime',
@@ -243,6 +250,18 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of tags to apply to the lead',
 			},
 			{
+				displayName: 'Remove Tags',
+				name: 'removeTags',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of tags to remove from the lead',
+				displayOptions: {
+					show: {
+						'/operation': ['update'],
+					},
+				},
+			},
+			{
 				displayName: 'Phone Numbers',
 				name: 'phoneNumbers',
 				type: 'string',
@@ -261,7 +280,12 @@ export const leadFields: INodeProperties[] = [
 				name: 'stage',
 				type: 'string',
 				default: '',
-				description: 'The name of a stage to be applied to the lead',
+				description: 'The name of a stage to be applied to the lead. On update, use Lead Stage instead.',
+				displayOptions: {
+					show: {
+						'/operation': ['create'],
+					},
+				},
 			},
 			{
 				displayName: 'Ad Optimization Consent',
