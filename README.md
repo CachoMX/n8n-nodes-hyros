@@ -222,7 +222,10 @@ Other documented limitations:
 
 ## Version History
 
-### 2.8.0 (Current)
+### 2.8.1 (Current)
+- **Clean errors for unresolved expressions** - when an ID expression (e.g. `{{ $json.id }}`) resolves to undefined at runtime, Sales Delete, Order Refund, Call Delete, Webhook Subscription Delete, Lead Get Journey, and Subscription Update now fail fast with a clear node error ("Sale ID is required") instead of crashing with a TypeError. Found during live end-to-end testing in n8n.
+
+### 2.8.0
 - **New resource: Webhook Subscriptions** — Create, Get Many, and Delete operations for `/webhook-subscriptions`, covering all 8 event types including the new `sale.refunded`, `subscription.created`, and `subscription.status.changed`
 - **Lead Get Many: filter by tags** — new `Tags` filter using the API's new `tags` query parameter
 - **Lead Update: Remove Tags** — new field using the API's new `removeTags` body field for bidirectional tag management

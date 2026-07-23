@@ -412,11 +412,16 @@ export class Hyros implements INodeType {
 						}
 
 					} else if (operation === 'getJourney') {
-						const ids = this.getNodeParameter('ids', i) as string;
+						// An expression like {{ $json.id }} can resolve to undefined at runtime
+						// even though the field is required in the UI.
+						const ids = String(this.getNodeParameter('ids', i) ?? '');
+						const idArray = ids.split(',').map(id => id.trim()).filter(id => id.length > 0);
+						if (idArray.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one lead ID is required', { itemIndex: i });
+						}
 						const qs: IDataObject = {};
 
 						// Pass IDs directly without quotes - API expects: ids=id1,id2,id3
-						const idArray = ids.split(',').map(id => id.trim());
 						qs.ids = idArray.join(',');
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/journey', {}, qs);
@@ -507,7 +512,7 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
-						const saleId = (this.getNodeParameter('saleId', i) as string).trim();
+						const saleId = String(this.getNodeParameter('saleId', i) ?? '').trim();
 						if (!saleId) {
 							throw new NodeOperationError(this.getNode(), 'Sale ID is required', { itemIndex: i });
 						}
@@ -559,7 +564,7 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'refund') {
-						const orderId = (this.getNodeParameter('orderId', i) as string).trim();
+						const orderId = String(this.getNodeParameter('orderId', i) ?? '').trim();
 						if (!orderId) {
 							throw new NodeOperationError(this.getNode(), 'Order ID is required', { itemIndex: i });
 						}
@@ -688,7 +693,7 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
-						const callId = (this.getNodeParameter('callId', i) as string).trim();
+						const callId = String(this.getNodeParameter('callId', i) ?? '').trim();
 						if (!callId) {
 							throw new NodeOperationError(this.getNode(), 'Call ID is required', { itemIndex: i });
 						}
@@ -1173,12 +1178,16 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'update') {
-						const ids = this.getNodeParameter('ids', i) as string;
+						const ids = String(this.getNodeParameter('ids', i) ?? '')
+							.split(',').map(id => id.trim()).filter(id => id.length > 0);
+						if (ids.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one subscription ID is required', { itemIndex: i });
+						}
 						const price = this.getNodeParameter('price', i) as number;
 						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
 
 						const body: IDataObject = {
-							ids: ids.split(',').map(id => id.trim()),
+							ids,
 							price,
 						};
 
@@ -1272,7 +1281,7 @@ export class Hyros implements INodeType {
 						returnData.push(...subscriptions);
 
 					} else if (operation === 'delete') {
-						const externalId = (this.getNodeParameter('externalId', i) as string).trim();
+						const externalId = String(this.getNodeParameter('externalId', i) ?? '').trim();
 						if (!externalId) {
 							throw new NodeOperationError(this.getNode(), 'External ID is required', { itemIndex: i });
 						}
