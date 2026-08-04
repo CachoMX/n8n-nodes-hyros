@@ -19,6 +19,12 @@ export const leadOperations: INodeProperties[] = [
 				action: 'Create a lead',
 			},
 			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Permanently erase a lead and its personal data (GDPR/CCPA)',
+				action: 'Delete a lead',
+			},
+			{
 				name: 'Get Many',
 				value: 'getAll',
 				description: 'Get multiple leads with optional filtering',
@@ -105,7 +111,6 @@ export const leadFields: INodeProperties[] = [
 		displayName: 'Lead IDs',
 		name: 'ids',
 		type: 'string',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['lead'],
@@ -113,7 +118,72 @@ export const leadFields: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Comma-separated list of lead IDs to retrieve journey information',
+		description: 'Comma-separated list of lead IDs. Provide either Lead IDs or Emails.',
+	},
+	{
+		displayName: 'Emails',
+		name: 'emails',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['getJourney'],
+			},
+		},
+		default: '',
+		description: 'Comma-separated list of emails. Provide either Lead IDs or Emails. Using emails saves a lookup call.',
+	},
+	{
+		displayName: 'Include Events',
+		name: 'includeEvents',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['getJourney'],
+			},
+		},
+		default: false,
+		description: 'Whether to also return the chronological journey event list',
+	},
+	// Delete Lead
+	{
+		displayName: 'Search By',
+		name: 'searchBy',
+		type: 'options',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['delete'],
+			},
+		},
+		options: [
+			{
+				name: 'Email',
+				value: 'email',
+			},
+			{
+				name: 'ID',
+				value: 'id',
+			},
+		],
+		default: 'email',
+		description: 'Which field identifies the lead to delete',
+	},
+	{
+		displayName: 'Search Value',
+		name: 'searchValue',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['delete'],
+			},
+		},
+		default: '',
+		description: 'The email or ID of the lead to erase. This cannot be undone.',
 	},
 	// Get Many Leads
 	{
@@ -189,6 +259,20 @@ export const leadFields: INodeProperties[] = [
 				description: 'The ID of the next page to be retrieved',
 			},
 			{
+				displayName: 'Phones',
+				name: 'phones',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of phone numbers (max 50). Matched on trailing digits, so formatting, spaces and country codes are tolerated.',
+			},
+			{
+				displayName: 'Stage',
+				name: 'stage',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of stage names (max 50). Leads whose current stage matches any of them are returned.',
+			},
+			{
 				displayName: 'Tags',
 				name: 'tags',
 				type: 'string',
@@ -201,6 +285,20 @@ export const leadFields: INodeProperties[] = [
 				type: 'dateTime',
 				default: '',
 				description: 'Only leads whose join date is before this (ISO 8601 format)',
+			},
+			{
+				displayName: 'Updated From Date',
+				name: 'updatedFromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only leads modified on or after this date. Use this for incremental sync: From Date and To Date filter on the join date and miss leads that were later re-tagged or re-staged.',
+			},
+			{
+				displayName: 'Updated To Date',
+				name: 'updatedToDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only leads modified on or before this date',
 			},
 		],
 	},

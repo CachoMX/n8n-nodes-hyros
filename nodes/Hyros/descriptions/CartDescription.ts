@@ -19,6 +19,12 @@ export const cartOperations: INodeProperties[] = [
 				action: 'Create a cart',
 			},
 			{
+				name: 'Get Many',
+				value: 'getAll',
+				description: 'Get carts, filterable to abandoned ones',
+				action: 'Get many carts',
+			},
+			{
 				name: 'Update',
 				value: 'update',
 				description: 'Update an existing cart',
@@ -199,6 +205,95 @@ export const cartFields: INodeProperties[] = [
 				],
 				default: 'DECIMAL',
 				description: 'The cart items price format',
+			},
+		],
+	},
+	// ------ Get Many ------
+	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['cart'],
+				operation: ['getAll'],
+			},
+		},
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
+		type: 'number',
+		displayOptions: {
+			show: {
+				resource: ['cart'],
+				operation: ['getAll'],
+				returnAll: [false],
+			},
+		},
+		typeOptions: {
+			minValue: 1,
+			maxValue: 250,
+		},
+		default: 50,
+		description: 'Max number of results to return',
+	},
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['cart'],
+				operation: ['getAll'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Emails',
+				name: 'emails',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated emails (max 50)',
+			},
+			{
+				displayName: 'From Date',
+				name: 'fromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only carts created on or after this date',
+			},
+			{
+				displayName: 'Lead IDs',
+				name: 'leadIds',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated lead IDs (max 50)',
+			},
+			{
+				displayName: 'Page ID',
+				name: 'pageId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the next page to be retrieved',
+			},
+			{
+				displayName: 'Purchased',
+				name: 'purchased',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to return only carts that became an order. Set false to find abandoned carts.',
+			},
+			{
+				displayName: 'To Date',
+				name: 'toDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only carts created on or before this date',
 			},
 		],
 	},
