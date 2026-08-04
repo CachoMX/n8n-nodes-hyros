@@ -813,7 +813,11 @@ export class Hyros implements INodeType {
 							qs.newCustomerConfiguration = additionalFields.newCustomerConfiguration;
 						}
 						if (additionalFields.dateTimeGroupingOption) {
-							qs.dateTimeGroupingOption = additionalFields.dateTimeGroupingOption;
+							// The Hyros spec documents this as dateTimeGroupingOption, but the API silently
+							// ignores that name and returns one aggregate row. Only adLevelDateGroupingOption
+							// is honored (verified live 2026-08-04). The UI field keeps the documented name so
+							// existing workflows keep working.
+							qs.adLevelDateGroupingOption = additionalFields.dateTimeGroupingOption;
 						}
 						// pageSize/pageId are deliberately NOT forwarded: GET /attribution/ad-account
 						// documents no pagination and strict validation (v1.38) 400s on unknown params.
