@@ -57,32 +57,33 @@ This node requires a Hyros API Key. You can obtain your API key from your Hyros 
 This node provides complete coverage of the Hyros API with the following resources:
 
 ### Core Resources
-- **Leads** - Create, read, update leads and retrieve journey data (filter by tags, add/remove tags)
+- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date or last-updated date; add and remove tags.
 - **Sales** - Manage sales data and track conversions
 - **Orders** - Create and manage orders with items
 - **Calls** - Track and manage call events
 
 ### Attribution & Analytics
 - **Attribution** - Get attribution reports for ads and ad accounts
+- **Ad Accounts** - List the ad accounts connected to Hyros, with the IDs the attribution reports need
 - **Ads** - Retrieve ad data from various platforms (Facebook, Google, TikTok, etc.)
 
 ### Products & Subscriptions
-- **Products** - Create and manage products
+- **Products** - Create, list, update and delete products, including price and cost of goods
 - **Subscriptions** - Track recurring subscriptions
 
 ### User & Account
 - **User Info** - Get user account information
-- **Tags** - Retrieve available tags
-- **Sources** - Manage traffic sources
+- **Tags** - Retrieve available tags, with lead counts per tag
+- **Sources** - Create, list, update and delete traffic sources (addressed by tag, not by ID)
 - **Stages** - Get lead stages
 - **Domains** - Retrieve verified domains
 
 ### Tracking
 - **Tracking Script** - Get tracking scripts for your domains
 - **Clicks** - Track click events
-- **Carts** - Manage cart events
+- **Carts** - Create, update and list cart events, filterable to abandoned carts
 - **Keywords** - Retrieve keyword data
-- **Custom Costs** - Add custom cost data
+- **Custom Costs** - Create, list, update and delete custom cost data
 
 ### Webhooks
 - **Webhook Subscriptions** - Create, list, and delete webhook subscriptions for events like `sale.attributed`, `sale.refunded`, `lead.opted.in`, `subscription.created`, and `subscription.status.changed`. Requires an API key with the webhook role enabled in the Hyros admin panel (without it the API returns 401). The Create response includes a one-time `secretKey` for validating the HMAC signature of deliveries.
@@ -180,8 +181,8 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 | Feature | Coverage |
 |---------|----------|
-| Resources | ✅ All 19 resources |
-| Operations | ✅ All 36 operations |
+| Resources | ✅ All 20 resources |
+| Operations | ✅ All 48 operations |
 | Parameters | ✅ Complete support |
 | Error Handling | ✅ Complete |
 | Pagination | ✅ Full support |
@@ -222,7 +223,20 @@ Other documented limitations:
 
 ## Version History
 
-### 2.8.2 (Current)
+### 2.9.0 (Current)
+- **Matches Hyros API v1.39**, published 2026-08-04. Every addition below was verified against a live account before shipping.
+- **Fixed: Ad Account attribution report grouping never worked** — the node sent `dateTimeGroupingOption`, the name the Hyros spec documents. The API silently ignores it and returns a single aggregate row, so any workflow grouping by day, week, month or year has been getting one row instead. It now sends `adLevelDateGroupingOption`, which the API honors (a 30-day window returns 30 rows summing exactly to the aggregate). The UI field keeps its name, so saved workflows need no change.
+- **New resource: Ad Accounts** — Get Many lists every connected ad account with its ID, name and platform. Use it to discover the IDs the attribution reports require.
+- **Lead: Delete** — permanently erases a lead and its personal data, for GDPR and CCPA requests
+- **Lead Get Many: three new filters** — `Phones` (matched on trailing digits, so formatting and country codes are tolerated), `Stage`, and `Updated From/To Date`. The updated-date pair is what makes incremental sync possible: From/To Date filter on the join date and miss leads that were later re-tagged or re-staged.
+- **Lead Get Journey: accepts emails** — pass Emails instead of Lead IDs and skip the lookup call. Lead IDs is no longer required; provide either. New Include Events toggle returns the chronological event list.
+- **Products: Get Many, Update, Delete** — list the catalog, correct a price or cost of goods, remove a product created by mistake
+- **Custom Costs: Get Many, Update, Delete** — audit costs in a date window and close open-ended recurring costs that skew profit and ROAS. Update replaces the whole record, so send every field.
+- **Sources: Update, Delete** — rename or reclassify a source, toggle its organic and disregarded flags, or remove it. Sources are addressed by tag (e.g. `@california`), not by ID.
+- **Carts: Get Many** — filter by purchase status, lead or date. Set Purchased to false to find abandoned carts.
+- **Tags: Get Many With Counts** — tags with the number of leads carrying each, paginated. Note the name filter is an exact match including the prefix: `@california` finds the tag, `california` returns nothing. The original Get Many is deprecated by Hyros but still works.
+
+### 2.8.2
 - **Passes the new provenance source scan** - @n8n/scan-community-package now lints the GitHub source of provenance-signed packages with the strict @n8n/community-nodes ruleset; this release conforms: credential icon, `usableAsTool`, `NodeConnectionTypes` inputs/outputs, `NodeOperationError`/`NodeApiError` everywhere, singular resource labels, and alphabetized option lists (order-only; all stored `value`s unchanged, saved workflows unaffected)
 
 ### 2.8.1

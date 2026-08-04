@@ -106,6 +106,11 @@ import {
 } from './descriptions/StagesDescription';
 
 import {
+	adAccountOperations,
+	adAccountFields,
+} from './descriptions/AdAccountDescription';
+
+import {
 	webhookSubscriptionOperations,
 	webhookSubscriptionFields,
 } from './descriptions/WebhookSubscriptionDescription';
@@ -140,6 +145,10 @@ export class Hyros implements INodeType {
 					{
 						name: 'Ad',
 						value: 'ad',
+					},
+					{
+						name: 'Ad Account',
+						value: 'adAccount',
 					},
 					{
 						name: 'Attribution',
@@ -216,6 +225,9 @@ export class Hyros implements INodeType {
 				],
 				default: 'lead',
 			},
+			// Ad Account
+			...adAccountOperations,
+			...adAccountFields,
 			// Lead
 			...leadOperations,
 			...leadFields,
@@ -394,11 +406,29 @@ export class Hyros implements INodeType {
 								qs.tags = tags.map(t => `"${t}"`).join(',');
 							}
 						}
+						if (filters.phones) {
+							const phones = (filters.phones as string).split(',').map(p => p.trim()).filter(p => p.length > 0);
+							if (phones.length > 0) {
+								qs.phones = phones.map(p => `"${p}"`).join(',');
+							}
+						}
+						if (filters.stage) {
+							const stages = (filters.stage as string).split(',').map(st => st.trim()).filter(st => st.length > 0);
+							if (stages.length > 0) {
+								qs.stage = stages.map(st => `"${st}"`).join(',');
+							}
+						}
 						if (filters.fromDate) {
 							qs.fromDate = filters.fromDate;
 						}
 						if (filters.toDate) {
 							qs.toDate = filters.toDate;
+						}
+						if (filters.updatedFromDate) {
+							qs.updatedFromDate = filters.updatedFromDate;
+						}
+						if (filters.updatedToDate) {
+							qs.updatedToDate = filters.updatedToDate;
 						}
 						if (filters.pageId) {
 							qs.pageId = filters.pageId;
@@ -417,20 +447,41 @@ export class Hyros implements INodeType {
 
 					} else if (operation === 'getJourney') {
 						// An expression like {{ $json.id }} can resolve to undefined at runtime
-						// even though the field is required in the UI.
+						// even though the field is filled in the UI.
 						const ids = String(this.getNodeParameter('ids', i) ?? '');
+						const emails = String(this.getNodeParameter('emails', i, '') ?? '');
 						const idArray = ids.split(',').map(id => id.trim()).filter(id => id.length > 0);
-						if (idArray.length === 0) {
-							throw new NodeOperationError(this.getNode(), 'At least one lead ID is required', { itemIndex: i });
+						const emailArray = emails.split(',').map(e => e.trim()).filter(e => e.length > 0);
+						if (idArray.length === 0 && emailArray.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Provide either Lead IDs or Emails', { itemIndex: i });
 						}
 						const qs: IDataObject = {};
 
 						// Pass IDs directly without quotes - API expects: ids=id1,id2,id3
-						qs.ids = idArray.join(',');
+						if (idArray.length > 0) {
+							qs.ids = idArray.join(',');
+						}
+						if (emailArray.length > 0) {
+							qs.emails = emailArray.join(',');
+						}
+						if (this.getNodeParameter('includeEvents', i, false) as boolean) {
+							qs.includeEvents = true;
+						}
 
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/journey', {}, qs);
 						const journeys = (responseData as any).result || [];
-					returnData.push(...journeys);
+						returnData.push(...journeys);
+
+					} else if (operation === 'delete') {
+						const searchBy = this.getNodeParameter('searchBy', i) as string;
+						const searchValue = String(this.getNodeParameter('searchValue', i) ?? '').trim();
+						if (searchValue.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Search Value is required to delete a lead', { itemIndex: i });
+						}
+						const qs: IDataObject = { [searchBy]: searchValue };
+
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', '/leads', {}, qs);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'sales') {
@@ -813,7 +864,11 @@ export class Hyros implements INodeType {
 							qs.newCustomerConfiguration = additionalFields.newCustomerConfiguration;
 						}
 						if (additionalFields.dateTimeGroupingOption) {
-							qs.dateTimeGroupingOption = additionalFields.dateTimeGroupingOption;
+							// The Hyros spec documents this as dateTimeGroupingOption, but the API silently
+							// ignores that name and returns one aggregate row. Only adLevelDateGroupingOption
+							// is honored (verified live 2026-08-04). The UI field keeps the documented name so
+							// existing workflows keep working.
+							qs.adLevelDateGroupingOption = additionalFields.dateTimeGroupingOption;
 						}
 						// pageSize/pageId are deliberately NOT forwarded: GET /attribution/ad-account
 						// documents no pagination and strict validation (v1.38) 400s on unknown params.
@@ -847,6 +902,63 @@ export class Hyros implements INodeType {
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/products', body);
 						returnData.push({ success: true, result: (responseData as any).result });
+
+					} else if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+
+						for (const key of ['ids', 'name', 'tags', 'category', 'pageId']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/products', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/products', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
+
+					} else if (operation === 'update') {
+						const productId = String(this.getNodeParameter('productId', i) ?? '').trim();
+						if (productId.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Product ID is required', { itemIndex: i });
+						}
+						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						if (Object.keys(updateFields).length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one field to update is required', { itemIndex: i });
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/products/${productId}`, updateFields);
+						returnData.push({ success: true, result: (responseData as any).result });
+
+					} else if (operation === 'delete') {
+						const productId = String(this.getNodeParameter('productId', i) ?? '').trim();
+						if (productId.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Product ID is required', { itemIndex: i });
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/products/${productId}`);
+						returnData.push({ success: true, result: (responseData as any).result });
+					}
+
+				} else if (resource === 'adAccount') {
+					if (operation === 'getAll') {
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+						if (filters.ids) {
+							qs.ids = filters.ids;
+						}
+						if (filters.fields) {
+							qs.fields = filters.fields;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/ad-accounts', {}, qs);
+						returnData.push(...((responseData as any).result || []));
 					}
 
 				} else if (resource === 'tag') {
@@ -858,6 +970,26 @@ export class Hyros implements INodeType {
 						// Convert tag strings to objects
 						const tagObjects = tags.map((tag: string) => ({ tag }));
 						returnData.push(...tagObjects);
+
+					} else if (operation === 'getCount') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+						if (filters.name) {
+							qs.name = filters.name;
+						}
+						if (filters.pageId) {
+							qs.pageId = filters.pageId;
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/tags/count', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/tags/count', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
 					}
 
 				} else if (resource === 'source') {
@@ -909,6 +1041,27 @@ export class Hyros implements INodeType {
 							const sources = (responseData as any).result || [];
 							returnData.push(...sources);
 						}
+					} else if (operation === 'update') {
+						const sourceTag = String(this.getNodeParameter('sourceTag', i) ?? '').trim();
+						if (sourceTag.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Source Tag is required', { itemIndex: i });
+						}
+						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						if (Object.keys(updateFields).length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one field to update is required', { itemIndex: i });
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/sources/${sourceTag}`, updateFields);
+						returnData.push({ success: true, result: (responseData as any).result });
+
+					} else if (operation === 'delete') {
+						const sourceTag = String(this.getNodeParameter('sourceTag', i) ?? '').trim();
+						if (sourceTag.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Source Tag is required', { itemIndex: i });
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/sources/${sourceTag}`);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'ad') {
@@ -970,6 +1123,57 @@ export class Hyros implements INodeType {
 						}
 
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-costs', body);
+						returnData.push({ success: true, result: (responseData as any).result });
+					} else if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+						for (const key of ['ids', 'fromDate', 'toDate', 'pageId']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/custom-costs', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/custom-costs', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
+
+					} else if (operation === 'update') {
+						const customCostId = String(this.getNodeParameter('customCostId', i) ?? '').trim();
+						if (customCostId.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Custom Cost ID is required', { itemIndex: i });
+						}
+						// PUT replaces the whole record, so every required field is sent even when unchanged.
+						const body: IDataObject = {
+							startDate: this.getNodeParameter('startDate', i),
+							frequency: this.getNodeParameter('frequency', i),
+							cost: this.getNodeParameter('cost', i),
+							tags: this.getNodeParameter('tags', i),
+						};
+						const name = this.getNodeParameter('name', i, '') as string;
+						if (name) {
+							body.name = name;
+						}
+						const endDate = this.getNodeParameter('endDate', i, '') as string;
+						if (endDate) {
+							body.endDate = endDate;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/custom-costs/${customCostId}`, body);
+						returnData.push({ success: true, result: (responseData as any).result });
+
+					} else if (operation === 'delete') {
+						const customCostId = String(this.getNodeParameter('customCostId', i) ?? '').trim();
+						if (customCostId.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Custom Cost ID is required', { itemIndex: i });
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/custom-costs/${customCostId}`);
 						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
@@ -1080,6 +1284,27 @@ export class Hyros implements INodeType {
 
 						const responseData = await hyrosApiRequest.call(this, 'PUT', '/carts', body);
 						returnData.push({ success: true, result: (responseData as any).result });
+					} else if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+						for (const key of ['emails', 'leadIds', 'fromDate', 'toDate', 'pageId']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
+						if (filters.purchased !== undefined) {
+							qs.purchased = filters.purchased;
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/carts', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/carts', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
 					}
 
 				} else if (resource === 'userInfo') {
