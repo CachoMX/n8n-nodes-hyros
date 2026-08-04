@@ -25,16 +25,16 @@ export const leadOperations: INodeProperties[] = [
 				action: 'Delete a lead',
 			},
 			{
-				name: 'Get Many',
-				value: 'getAll',
-				description: 'Get multiple leads with optional filtering',
-				action: 'Get many leads',
-			},
-			{
 				name: 'Get Journey',
 				value: 'getJourney',
 				description: 'Get the complete customer journey for a lead',
 				action: 'Get lead journey',
+			},
+			{
+				name: 'Get Many',
+				value: 'getAll',
+				description: 'Get multiple leads with optional filtering',
+				action: 'Get many leads',
 			},
 			{
 				name: 'Update',
