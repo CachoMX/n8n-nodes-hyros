@@ -223,7 +223,11 @@ Other documented limitations:
 
 ## Version History
 
-### 2.9.0 (Current)
+### 2.9.1 (Current)
+- **Fixes the n8n community scanner check** — the Lead operation list was not alphabetized, which the scanner's `@n8n/community-nodes` ruleset rejects. 2.9.0 published with this error; 2.9.1 clears it. Operation `value`s are unchanged, so saved workflows are unaffected.
+- **Closes the gap that let it through** — `npm run scan` can only scan a *published* package, so it cannot catch this before release. The rule is now enabled in `.eslintrc.js`, making `npm run lint` fail on it pre-release.
+
+### 2.9.0
 - **Matches Hyros API v1.39**, published 2026-08-04. Every addition below was verified against a live account before shipping.
 - **Fixed: Ad Account attribution report grouping never worked** — the node sent `dateTimeGroupingOption`, the name the Hyros spec documents. The API silently ignores it and returns a single aggregate row, so any workflow grouping by day, week, month or year has been getting one row instead. It now sends `adLevelDateGroupingOption`, which the API honors (a 30-day window returns 30 rows summing exactly to the aggregate). The UI field keeps its name, so saved workflows need no change.
 - **New resource: Ad Accounts** — Get Many lists every connected ad account with its ID, name and platform. Use it to discover the IDs the attribution reports require.
