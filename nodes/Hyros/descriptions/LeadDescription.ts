@@ -442,6 +442,13 @@ export const leadFields: INodeProperties[] = [
 				default: '',
 				description: 'Comma-separated list of tags to apply to the lead',
 			},
+			{
+				displayName: 'Tags Date',
+				name: 'tagsDate',
+				type: 'dateTime',
+				default: '',
+				description: 'ISO 8601 date applied as the assignment date of every tag in Tags, to backdate historical tags during imports, migrations or CRM syncs. Defaults to the current time when omitted. Cannot be in the future. Tags the lead already has keep their existing date. If a tag generates a sale or a source attribution, those are backdated too.',
+			},
 		],
 	},
 ];

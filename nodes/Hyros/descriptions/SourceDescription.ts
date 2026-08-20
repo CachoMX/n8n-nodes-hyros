@@ -128,10 +128,6 @@ export const sourceFields: INodeProperties[] = [
 				type: 'options',
 				options: [
 					{
-						name: 'Bing',
-						value: 'BING',
-					},
-					{
 						name: 'Facebook',
 						value: 'FACEBOOK',
 					},
@@ -144,10 +140,6 @@ export const sourceFields: INodeProperties[] = [
 						value: 'LINKEDIN',
 					},
 					{
-						name: 'Pinterest',
-						value: 'PINTEREST',
-					},
-					{
 						name: 'Snapchat',
 						value: 'SNAPCHAT',
 					},
@@ -155,13 +147,9 @@ export const sourceFields: INodeProperties[] = [
 						name: 'TikTok',
 						value: 'TIKTOK',
 					},
-					{
-						name: 'Twitter',
-						value: 'TWITTER',
-					},
 				],
 				default: 'FACEBOOK',
-				description: 'Provider of the source',
+				description: 'Provider of the source. The API only accepts this subset when creating a source.',
 			},
 			{
 				displayName: 'Is Disregard',
@@ -258,6 +246,10 @@ export const sourceFields: INodeProperties[] = [
 				type: 'options',
 				options: [
 					{
+						name: 'AppLovin',
+						value: 'APPLOVIN',
+					},
+					{
 						name: 'Bing',
 						value: 'BING',
 					},
@@ -270,12 +262,20 @@ export const sourceFields: INodeProperties[] = [
 						value: 'GOOGLE',
 					},
 					{
+						name: 'Google V2',
+						value: 'GOOGLE_V2',
+					},
+					{
 						name: 'LinkedIn',
 						value: 'LINKEDIN',
 					},
 					{
 						name: 'Pinterest',
 						value: 'PINTEREST',
+					},
+					{
+						name: 'Reddit',
+						value: 'REDDIT',
 					},
 					{
 						name: 'Snapchat',
@@ -288,6 +288,10 @@ export const sourceFields: INodeProperties[] = [
 					{
 						name: 'Twitter',
 						value: 'TWITTER',
+					},
+					{
+						name: 'Whop Ads',
+						value: 'WHOP_ADS',
 					},
 				],
 				default: 'FACEBOOK',
@@ -364,6 +368,13 @@ export const sourceFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'New source name',
+			},
+			{
+				displayName: 'Tag',
+				name: 'tag',
+				type: 'string',
+				default: '',
+				description: 'New tag to be assigned to the source (a new tag, or an existing one not used by another source). Must be a source tag: include the @ prefix, e.g. @my-source (a value with no prefix is automatically prefixed with @). A tag with a non-source prefix ($, !, #) is rejected with Invalid tag.',
 			},
 			{
 				displayName: 'Traffic Source',

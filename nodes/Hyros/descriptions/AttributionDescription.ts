@@ -13,16 +13,28 @@ export const attributionOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Get Ad Account Attribution Report',
+				value: 'getAdAccountReport',
+				description: 'Retrieves the required Ad account attribution information',
+				action: 'Get ad account attribution report',
+			},
+			{
 				name: 'Get Ads Attribution Report',
 				value: 'getAdsReport',
 				description: 'Retrieves the required Facebook AdSet or Google Campaign attribution information',
 				action: 'Get ads attribution report',
 			},
 			{
-				name: 'Get Ad Account Attribution Report',
-				value: 'getAdAccountReport',
-				description: 'Retrieves the required Ad account attribution information',
-				action: 'Get ad account attribution report',
+				name: 'Get Marginal CAC Curve',
+				value: 'getMarginalCacCurve',
+				description: 'Compute the marginal cost of acquiring the next customer at every observed daily spend level, and the spend level past which the next dollar is wasted',
+				action: 'Get marginal CAC curve',
+			},
+			{
+				name: 'Get ROAS',
+				value: 'getRoas',
+				description: 'Get the cash collected by a single ad, ad set, campaign or account against its ad spend (always measured under last click)',
+				action: 'Get ROAS',
 			},
 		],
 		default: 'getAdsReport',
@@ -67,7 +79,7 @@ export const attributionFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['attribution'],
-				operation: ['getAdsReport', 'getAdAccountReport'],
+				operation: ['getAdsReport', 'getAdAccountReport', 'getRoas'],
 			},
 		},
 		default: '',
@@ -81,11 +93,62 @@ export const attributionFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['attribution'],
-				operation: ['getAdsReport', 'getAdAccountReport'],
+				operation: ['getAdsReport', 'getAdAccountReport', 'getRoas'],
 			},
 		},
 		default: '',
 		description: 'The ending date to be taken to retrieve the attribution information (ISO 8601 format)',
+	},
+	// ROAS and Marginal CAC Curve report on a single entity
+	{
+		displayName: 'Entity ID',
+		name: 'entityId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['attribution'],
+				operation: ['getRoas', 'getMarginalCacCurve'],
+			},
+		},
+		default: '',
+		description: 'ID of the entity to report on, as the ad platform issues it. It must belong to the given Level.',
+	},
+	{
+		displayName: 'Level',
+		name: 'entityLevel',
+		type: 'options',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['attribution'],
+				operation: ['getRoas', 'getMarginalCacCurve'],
+			},
+		},
+		options: [
+			{
+				name: 'Account',
+				value: 'account',
+				description: 'A whole ad account',
+			},
+			{
+				name: 'Ad',
+				value: 'ad',
+				description: 'A single ad',
+			},
+			{
+				name: 'Campaign',
+				value: 'campaign',
+				description: 'A campaign, whose contained ads are resolved and aggregated. Available on Meta, Google and LinkedIn.',
+			},
+			{
+				name: 'Source Link',
+				value: 'source_link',
+				description: 'An ad set on Meta, an ad group elsewhere. The level most tracked data sits at.',
+			},
+		],
+		default: 'source_link',
+		description: 'Granularity the Entity ID refers to',
 	},
 	{
 		displayName: 'Level',
@@ -114,6 +177,10 @@ export const attributionFields: INodeProperties[] = [
 			{
 				name: 'Facebook AdSet',
 				value: 'facebook_adset',
+			},
+			{
+				name: 'Facebook Campaign',
+				value: 'facebook_campaign',
 			},
 			{
 				name: 'Google Ad',
@@ -292,6 +359,103 @@ export const attributionFields: INodeProperties[] = [
 		description: 'Based on level, IDs of which you want to retrieve information, separated by comma. For example, if your level is facebook_ad, then place the ad ID here. For getAdAccountReport, only 1 ID is permitted.',
 	},
 	{
+		displayName: 'Basis',
+		name: 'basis',
+		type: 'options',
+		displayOptions: {
+			show: {
+				resource: ['attribution'],
+				operation: ['getRoas'],
+			},
+		},
+		options: [
+			{
+				name: 'Click Date',
+				value: 'click_date',
+				description: 'Credits the clicks made inside the range, however long their sales took to land afterwards',
+			},
+			{
+				name: 'Sale Date',
+				value: 'sale_date',
+				description: 'Counts only the revenue collected inside the range',
+			},
+		],
+		default: 'click_date',
+		description: 'Which date the range filters on',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['attribution'],
+				operation: ['getMarginalCacCurve'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Attribution Model',
+				name: 'attributionModel',
+				type: 'options',
+				options: [
+					{
+						name: 'First Click',
+						value: 'first_click',
+						description: 'The customer belongs to the first ad that touched them: a cost-of-acquisition curve, the way to read prospecting entities',
+					},
+					{
+						name: 'Last Click',
+						value: 'last_click',
+						description: 'The customer belongs to the click that immediately preceded the purchase: a cost-of-closing curve, the way to read retargeting and bottom-of-funnel entities',
+					},
+				],
+				default: 'first_click',
+				description: 'Which model credits a customer to the entity',
+			},
+			{
+				displayName: 'CAC Ceiling',
+				name: 'cacCeiling',
+				type: 'number',
+				default: 0,
+				typeOptions: {
+					minValue: 0,
+				},
+				description: 'Maximum acceptable cost to acquire one customer. Overrides the LTV break-even ceiling. Required at the Account level, which carries no LTV.',
+			},
+			{
+				displayName: 'End Date',
+				name: 'endDate',
+				type: 'dateTime',
+				default: '',
+				description: 'ISO 8601 ending date of the history. Defaults to today.',
+			},
+			{
+				displayName: 'LTV Window',
+				name: 'ltvWindow',
+				type: 'options',
+				options: [
+					{ name: '1 Year', value: '1_year' },
+					{ name: '30 Days', value: '30_days' },
+					{ name: '6 Months', value: '6_months' },
+					{ name: '60 Days', value: '60_days' },
+					{ name: '90 Days', value: '90_days' },
+				],
+				default: '90_days',
+				description: 'Realized LTV window used as the break-even ceiling when CAC Ceiling is absent. Rejected at the Account level; provide CAC Ceiling there instead.',
+			},
+			{
+				displayName: 'Start Date',
+				name: 'startDate',
+				type: 'dateTime',
+				default: '',
+				description: 'ISO 8601 starting date of the history. Defaults to 90 days before End Date.',
+			},
+		],
+	},
+	{
 		displayName: 'Additional Fields',
 		name: 'additionalFields',
 		type: 'collection',
@@ -404,6 +568,18 @@ export const attributionFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Map of ad group IDs (in the case of Google ads) and keywords for which you want to retrieve information. Example: 66457534290:[391764277422,10000010],76590307372:[10000010].',
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
+				},
+			},
+			{
+				displayName: 'Lead Stage',
+				name: 'leadStage',
+				type: 'string',
+				default: '',
+				description: 'Filters the report to sources with leads in any of the given account lead stages, by stage name (case-insensitive), comma-separated (e.g. mql,sql,customer). An unknown stage name returns a 400.',
 				displayOptions: {
 					show: {
 						'/operation': ['getAdsReport'],

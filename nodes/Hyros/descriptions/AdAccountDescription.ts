@@ -25,6 +25,37 @@ export const adAccountOperations: INodeProperties[] = [
 
 export const adAccountFields: INodeProperties[] = [
 	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['adAccount'],
+				operation: ['getAll'],
+			},
+		},
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
+		type: 'number',
+		displayOptions: {
+			show: {
+				resource: ['adAccount'],
+				operation: ['getAll'],
+				returnAll: [false],
+			},
+		},
+		typeOptions: {
+			minValue: 1,
+			maxValue: 250,
+		},
+		default: 50,
+		description: 'Max number of results to return',
+	},
+	{
 		displayName: 'Filters',
 		name: 'filters',
 		type: 'collection',
@@ -42,7 +73,7 @@ export const adAccountFields: INodeProperties[] = [
 				name: 'fields',
 				type: 'string',
 				default: '',
-				description: 'Comma-separated fields to include per result (e.g. ID,name). Leave empty for all fields.',
+				description: 'Comma-separated fields to include per result. The API accepts name and type (e.g. name,type). Leave empty for all fields.',
 			},
 			{
 				displayName: 'IDs',
@@ -50,6 +81,13 @@ export const adAccountFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Comma-separated ad account IDs (max 50). Leave empty to list every connected account.',
+			},
+			{
+				displayName: 'Page ID',
+				name: 'pageId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the next page to be retrieved',
 			},
 		],
 	},

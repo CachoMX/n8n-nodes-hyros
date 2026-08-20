@@ -31,6 +31,13 @@ export class HyrosApi implements ICredentialType {
 			required: true,
 			description: 'The base URL for the Hyros API',
 		},
+		{
+			displayName: 'Accessible Account ID',
+			name: 'accessibleAccountId',
+			type: 'string',
+			default: '',
+			description: 'Agencies only: external ID of a connected client account to act on. Every request runs against that account instead of your own (sent as the Accessible-Account-Id header). Leave empty to operate on your own account.',
+		},
 	];
 
 	authenticate: IAuthenticateGeneric = {

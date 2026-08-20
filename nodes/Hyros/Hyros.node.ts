@@ -115,6 +115,16 @@ import {
 	webhookSubscriptionFields,
 } from './descriptions/WebhookSubscriptionDescription';
 
+import {
+	conversionDefinitionOperations,
+	conversionDefinitionFields,
+} from './descriptions/ConversionDefinitionDescription';
+
+import {
+	customConversionOperations,
+	customConversionFields,
+} from './descriptions/CustomConversionDescription';
+
 export class Hyros implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Hyros',
@@ -165,6 +175,14 @@ export class Hyros implements INodeType {
 					{
 						name: 'Click',
 						value: 'click',
+					},
+					{
+						name: 'Conversion Definition',
+						value: 'conversionDefinition',
+					},
+					{
+						name: 'Custom Conversion',
+						value: 'customConversion',
 					},
 					{
 						name: 'Custom Cost',
@@ -285,6 +303,12 @@ export class Hyros implements INodeType {
 			// Webhook Subscription
 			...webhookSubscriptionOperations,
 			...webhookSubscriptionFields,
+			// Conversion Definition
+			...conversionDefinitionOperations,
+			...conversionDefinitionFields,
+			// Custom Conversion
+			...customConversionOperations,
+			...customConversionFields,
 		],
 		usableAsTool: true,
 	};
@@ -321,6 +345,11 @@ export class Hyros implements INodeType {
 							}
 						}
 
+						// A blank Tags Date from the UI must not reach the API.
+						if (!additionalFields.tagsDate) {
+							delete additionalFields.tagsDate;
+						}
+
 						// Add remaining fields
 						Object.assign(body, additionalFields);
 
@@ -344,6 +373,11 @@ export class Hyros implements INodeType {
 								}
 								delete additionalFields[field];
 							}
+						}
+
+						// A blank Tags Date from the UI must not reach the API.
+						if (!additionalFields.tagsDate) {
+							delete additionalFields.tagsDate;
 						}
 
 						if (additionalFields.leadStage) {
@@ -617,6 +651,36 @@ export class Hyros implements INodeType {
 						const responseData = await hyrosApiRequest.call(this, 'POST', '/orders', body);
 						returnData.push({ success: true, result: (responseData as any).result });
 
+					} else if (operation === 'update') {
+						const orderId = String(this.getNodeParameter('orderId', i) ?? '').trim();
+						if (!orderId) {
+							throw new NodeOperationError(this.getNode(), 'Order ID is required', { itemIndex: i });
+						}
+						const itemsData = this.getNodeParameter('items', i) as IDataObject;
+						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+
+						// PUT /orders/{id} replaces the order's items, so at least one is required.
+						const items = (itemsData as any).item || [];
+						if (!Array.isArray(items) || items.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one item is required to update an order', { itemIndex: i });
+						}
+						const processedItems = items.map((item: IDataObject) => {
+							const processedItem: IDataObject = { ...item };
+							if (item.packages) {
+								const packages = (item.packages as string).split(',').map(p => p.trim());
+								processedItem.packages = packages;
+							}
+							return processedItem;
+						});
+
+						const body: IDataObject = {
+							items: processedItems,
+							...updateFields,
+						};
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/orders/${encodeURIComponent(orderId)}`, body);
+						returnData.push({ success: true, result: (responseData as any)?.result, orderId });
+
 					} else if (operation === 'refund') {
 						const orderId = String(this.getNodeParameter('orderId', i) ?? '').trim();
 						if (!orderId) {
@@ -707,9 +771,15 @@ export class Hyros implements INodeType {
 							qs.qualificationStages = qualificationStages.map(s => `"${s}"`).join(',');
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/calls', {}, qs);
-						const calls = (responseData as any).result || [];
-					returnData.push(...calls);
+						if (this.getNodeParameter('returnAll', i, false) as boolean) {
+							delete qs.pageSize;
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/calls', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/calls', {}, qs);
+							const calls = (responseData as any).result || [];
+							returnData.push(...calls);
+						}
 
 					} else if (operation === 'update') {
 						const ids = this.getNodeParameter('ids', i) as string;
@@ -808,6 +878,10 @@ export class Hyros implements INodeType {
 						if (additionalFields.status) {
 							qs.status = additionalFields.status;
 						}
+						if (additionalFields.leadStage) {
+							// The API's query parameter is snake_case, unlike every other one.
+							qs.lead_stage = additionalFields.leadStage;
+						}
 						if (additionalFields.timeGroupingOption) {
 							qs.timeGroupingOption = additionalFields.timeGroupingOption;
 						}
@@ -876,6 +950,57 @@ export class Hyros implements INodeType {
 						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/ad-account', {}, qs);
 						const attribution = (responseData as any).result || [];
 						returnData.push(...attribution);
+
+					} else if (operation === 'getRoas') {
+						const entityId = String(this.getNodeParameter('entityId', i) ?? '').trim();
+						if (!entityId) {
+							throw new NodeOperationError(this.getNode(), 'Entity ID is required', { itemIndex: i });
+						}
+						const qs: IDataObject = {
+							id: entityId,
+							level: this.getNodeParameter('entityLevel', i),
+							startDate: this.getNodeParameter('startDate', i),
+							endDate: this.getNodeParameter('endDate', i),
+						};
+						const basis = this.getNodeParameter('basis', i, '') as string;
+						if (basis) {
+							qs.basis = basis;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/roas', {}, qs);
+						// The result is a single object (or absent when the entity has no row for the range).
+						returnData.push((responseData as any)?.result || { result: null, request_id: (responseData as any)?.request_id });
+
+					} else if (operation === 'getMarginalCacCurve') {
+						const entityId = String(this.getNodeParameter('entityId', i) ?? '').trim();
+						if (!entityId) {
+							throw new NodeOperationError(this.getNode(), 'Entity ID is required', { itemIndex: i });
+						}
+						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+						const qs: IDataObject = {
+							id: entityId,
+							level: this.getNodeParameter('entityLevel', i),
+						};
+						if (additionalFields.startDate) {
+							qs.startDate = additionalFields.startDate;
+						}
+						if (additionalFields.endDate) {
+							qs.endDate = additionalFields.endDate;
+						}
+						if (additionalFields.ltvWindow) {
+							qs.ltvWindow = additionalFields.ltvWindow;
+						}
+						// 0 is a valid ceiling per the spec, but the UI cannot distinguish an
+						// untouched 0 default from an intentional one, so only forward positives.
+						if (typeof additionalFields.cacCeiling === 'number' && additionalFields.cacCeiling > 0) {
+							qs.cacCeiling = additionalFields.cacCeiling;
+						}
+						if (additionalFields.attributionModel) {
+							qs.attributionModel = additionalFields.attributionModel;
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/attribution/marginal-cac-curve', {}, qs);
+						returnData.push((responseData as any)?.result || { result: null, request_id: (responseData as any)?.request_id });
 					}
 
 				} else if (resource === 'product') {
@@ -908,10 +1033,17 @@ export class Hyros implements INodeType {
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
 						const qs: IDataObject = {};
 
-						for (const key of ['ids', 'name', 'tags', 'category', 'pageId']) {
+						// GET /products enforces strict validation and only accepts name, tag
+						// (singular), category and isRecurringSale (API v1.40). The ids and tags
+						// filters shipped before 2.10.0 now 400 as Unknown parameter, so stored
+						// values from old workflows are deliberately ignored.
+						for (const key of ['name', 'tag', 'category', 'pageId']) {
 							if (filters[key]) {
 								qs[key] = filters[key];
 							}
+						}
+						if (filters.isRecurringSale && filters.isRecurringSale !== 'ALL') {
+							qs.isRecurringSale = filters.isRecurringSale;
 						}
 
 						if (returnAll) {
@@ -928,12 +1060,38 @@ export class Hyros implements INodeType {
 						if (productId.length === 0) {
 							throw new NodeOperationError(this.getNode(), 'Product ID is required', { itemIndex: i });
 						}
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+						const updateFields = { ...(this.getNodeParameter('updateFields', i) as IDataObject) };
 						if (Object.keys(updateFields).length === 0) {
 							throw new NodeOperationError(this.getNode(), 'At least one field to update is required', { itemIndex: i });
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/products/${productId}`, updateFields);
+						// PUT /products/{id} enforces strict validation: the API's field names are
+						// customCost and isRecurringSale, not the costOfGoods/recurring the UI kept
+						// for saved-workflow compatibility.
+						if (updateFields.costOfGoods !== undefined) {
+							updateFields.customCost = updateFields.costOfGoods;
+							delete updateFields.costOfGoods;
+						}
+						if (updateFields.recurring !== undefined) {
+							updateFields.isRecurringSale = updateFields.recurring;
+							delete updateFields.recurring;
+						}
+						if (updateFields.packages !== undefined) {
+							// '[]' removes the product from all packages; omitting keeps them.
+							const raw = String(updateFields.packages).trim();
+							if (raw === '[]') {
+								updateFields.packages = [];
+							} else {
+								const values = raw.split(',').map(p => p.trim()).filter(p => p.length > 0);
+								if (values.length > 0) {
+									updateFields.packages = values;
+								} else {
+									delete updateFields.packages;
+								}
+							}
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/products/${encodeURIComponent(productId)}`, updateFields);
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
@@ -942,12 +1100,13 @@ export class Hyros implements INodeType {
 							throw new NodeOperationError(this.getNode(), 'Product ID is required', { itemIndex: i });
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/products/${productId}`);
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/products/${encodeURIComponent(productId)}`);
 						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'adAccount') {
 					if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
 						const qs: IDataObject = {};
 						if (filters.ids) {
@@ -956,9 +1115,18 @@ export class Hyros implements INodeType {
 						if (filters.fields) {
 							qs.fields = filters.fields;
 						}
+						if (filters.pageId) {
+							qs.pageId = filters.pageId;
+						}
 
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/ad-accounts', {}, qs);
-						returnData.push(...((responseData as any).result || []));
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/ad-accounts', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i, 50) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/ad-accounts', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
 					}
 
 				} else if (resource === 'tag') {
@@ -1164,7 +1332,7 @@ export class Hyros implements INodeType {
 							body.endDate = endDate;
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'PUT', `/custom-costs/${customCostId}`, body);
+						const responseData = await hyrosApiRequest.call(this, 'PUT', `/custom-costs/${encodeURIComponent(customCostId)}`, body);
 						returnData.push({ success: true, result: (responseData as any).result });
 
 					} else if (operation === 'delete') {
@@ -1173,7 +1341,7 @@ export class Hyros implements INodeType {
 							throw new NodeOperationError(this.getNode(), 'Custom Cost ID is required', { itemIndex: i });
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/custom-costs/${customCostId}`);
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/custom-costs/${encodeURIComponent(customCostId)}`);
 						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
@@ -1224,9 +1392,15 @@ export class Hyros implements INodeType {
 							qs.toDate = filters.toDate;
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/clicks', {}, qs);
-						const clicks = (responseData as any).result || [];
-						returnData.push(...clicks);
+						if (this.getNodeParameter('returnAll', i, false) as boolean) {
+							delete qs.pageSize;
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/leads/clicks', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/clicks', {}, qs);
+							const clicks = (responseData as any).result || [];
+							returnData.push(...clicks);
+						}
 					}
 
 				} else if (resource === 'cart') {
@@ -1319,13 +1493,27 @@ export class Hyros implements INodeType {
 				} else if (resource === 'keyword') {
 					// KEYWORD OPERATIONS
 					if (operation === 'get') {
-						const adgroupId = this.getNodeParameter('adgroupId', i) as string;
-						const qs: IDataObject = {
-							adgroupId,
-						};
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/keywords', {}, qs);
-						const keywords = (responseData as any).result || [];
-						returnData.push(...keywords);
+						const adgroupId = String(this.getNodeParameter('adgroupId', i, '') ?? '').trim();
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+						const qs: IDataObject = {};
+						// adgroupId is optional: without it the API lists all keywords.
+						if (adgroupId) {
+							qs.adgroupId = adgroupId;
+						}
+						if (additionalFields.pageId) {
+							qs.pageId = additionalFields.pageId;
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/keywords', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i, 50) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/keywords', {}, qs);
+							const keywords = (responseData as any).result || [];
+							returnData.push(...keywords);
+						}
 					}
 
 				} else if (resource === 'subscription') {
@@ -1368,9 +1556,15 @@ export class Hyros implements INodeType {
 							qs.pageId = filters.pageId;
 						}
 
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/subscriptions', {}, qs);
-						const subscriptions = (responseData as any).result || [];
-						returnData.push(...subscriptions);
+						if (this.getNodeParameter('returnAll', i, false) as boolean) {
+							delete qs.pageSize;
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/subscriptions', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/subscriptions', {}, qs);
+							const subscriptions = (responseData as any).result || [];
+							returnData.push(...subscriptions);
+						}
 
 					} else if (operation === 'create') {
 						const status = this.getNodeParameter('status', i) as string;
@@ -1415,8 +1609,13 @@ export class Hyros implements INodeType {
 
 						const body: IDataObject = {
 							ids,
-							price,
 						};
+
+						// The API only requires ids (v1.40). A price of 0 means "leave unchanged"
+						// in the UI, since the number field cannot distinguish unset from 0.
+						if (price) {
+							body.price = price;
+						}
 
 						// Add optional fields
 						if (additionalFields.name) {
@@ -1453,16 +1652,27 @@ export class Hyros implements INodeType {
 						if (additionalFields.domain) {
 							qs.domain = additionalFields.domain;
 						}
+						// Boolean script options are only sent when the user added them, so the
+						// deleteTrackingScriptParams user-metadata setting is not touched otherwise.
+						for (const flag of ['spa', 'ignorePrevUrl', 'embed', 'deleteTrackingScriptParams']) {
+							if (additionalFields[flag] !== undefined) {
+								qs[flag] = additionalFields[flag];
+							}
+						}
 
 						// Tracking script returns text/plain, not JSON
 						const credentials = await this.getCredentials('hyrosApi');
 						const trackingBaseUrl = (credentials.baseUrl as string).replace(/\/+$/, '');
+						const accessibleAccountId = ((credentials.accessibleAccountId as string) || '').trim();
 						const options: any = {
 							method: 'GET',
 							qs,
 							url: `${trackingBaseUrl}/api/v1.0/tracking-script`,
 							json: false, // Important: response is text/plain, not JSON
 						};
+						if (accessibleAccountId) {
+							options.headers = { 'Accessible-Account-Id': accessibleAccountId };
+						}
 
 						if (Object.keys(qs).length === 0) {
 							delete options.qs;
@@ -1475,7 +1685,8 @@ export class Hyros implements INodeType {
 				} else if (resource === 'domains') {
 					// DOMAINS OPERATIONS
 					if (operation === 'getAll') {
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/domains');
+						// The spec serves this endpoint under /api/v1/, not /api/v1.0/.
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/domains', {}, {}, '/api/v1');
 						// API returns array of domain strings, convert to objects
 						const domains = (responseData as string[]).map(domain => ({ domain }));
 						returnData.push(...domains);
@@ -1514,6 +1725,110 @@ export class Hyros implements INodeType {
 						}
 						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/webhook-subscriptions/${encodeURIComponent(externalId)}`);
 						returnData.push({ success: true, result: (responseData as any)?.result, externalId });
+					}
+
+				} else if (resource === 'conversionDefinition') {
+					// CONVERSION DEFINITION OPERATIONS
+					if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						const filters = this.getNodeParameter('filters', i) as IDataObject;
+						const qs: IDataObject = {};
+						for (const key of ['ids', 'fromDate', 'toDate', 'pageId']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/conversion-definition', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/conversion-definition', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
+
+					} else if (operation === 'create' || operation === 'update') {
+						const name = this.getNodeParameter('name', i) as string;
+						const tag = this.getNodeParameter('tag', i) as string;
+						const fieldsData = this.getNodeParameter('conversionFields', i) as IDataObject;
+						const conversionFields = (fieldsData as any).field || [];
+						if (!Array.isArray(conversionFields) || conversionFields.length < 3) {
+							throw new NodeOperationError(this.getNode(), 'At least 3 conversion fields are required', { itemIndex: i });
+						}
+
+						const body: IDataObject = {
+							name,
+							tag,
+							conversionFields,
+						};
+
+						if (operation === 'update') {
+							const conversionDefinitionId = String(this.getNodeParameter('conversionDefinitionId', i) ?? '').trim();
+							if (!conversionDefinitionId) {
+								throw new NodeOperationError(this.getNode(), 'Conversion Definition ID is required', { itemIndex: i });
+							}
+							body.id = conversionDefinitionId;
+							const responseData = await hyrosApiRequest.call(this, 'PUT', '/conversion-definition', body);
+							returnData.push({ success: true, result: (responseData as any).result });
+						} else {
+							const responseData = await hyrosApiRequest.call(this, 'POST', '/conversion-definition', body);
+							returnData.push({ success: true, result: (responseData as any).result });
+						}
+
+					} else if (operation === 'delete') {
+						const conversionDefinitionId = String(this.getNodeParameter('conversionDefinitionId', i) ?? '').trim();
+						if (!conversionDefinitionId) {
+							throw new NodeOperationError(this.getNode(), 'Conversion Definition ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/conversion-definition/${encodeURIComponent(conversionDefinitionId)}`);
+						returnData.push({ success: true, result: (responseData as any)?.result, conversionDefinitionId });
+					}
+
+				} else if (resource === 'customConversion') {
+					// CUSTOM CONVERSION OPERATIONS
+					if (operation === 'create') {
+						const tag = this.getNodeParameter('tag', i) as string;
+						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+						const customFieldsData = this.getNodeParameter('customFieldsUi', i, {}) as IDataObject;
+
+						// The body is flat: tag, lead fields, and every custom field at the top level.
+						const body: IDataObject = { tag };
+
+						for (const field of ['phoneNumbers', 'leadIps']) {
+							if (additionalFields[field] !== undefined) {
+								const values = String(additionalFields[field]).split(',').map(v => v.trim()).filter(v => v.length > 0);
+								if (values.length > 0) {
+									body[field] = values;
+								}
+								delete additionalFields[field];
+							}
+						}
+						Object.assign(body, additionalFields);
+
+						const customFields = (customFieldsData as any).field || [];
+						for (const field of customFields as IDataObject[]) {
+							const fieldName = String(field.name ?? '').trim();
+							if (!fieldName) {
+								continue;
+							}
+							const rawValue = String(field.value ?? '');
+							// The API infers each custom field's type from the JSON value sent.
+							if (field.type === 'number') {
+								const parsed = Number(rawValue);
+								if (Number.isNaN(parsed)) {
+									throw new NodeOperationError(this.getNode(), `Custom field "${fieldName}" is not a valid number: ${rawValue}`, { itemIndex: i });
+								}
+								body[fieldName] = parsed;
+							} else if (field.type === 'boolean') {
+								body[fieldName] = rawValue.toLowerCase() === 'true';
+							} else {
+								body[fieldName] = rawValue;
+							}
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-conversion', body);
+						returnData.push({ success: true, result: (responseData as any).result });
 					}
 
 				} else if (resource === 'stages') {

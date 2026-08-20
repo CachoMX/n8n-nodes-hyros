@@ -11,9 +11,9 @@ Developed by **[Carlos Aragon](https://carlosaragon.online/)** - A complete n8n 
 
 ## ✨ Features
 
-- 🎯 **Complete API Coverage** - All 19 Hyros resources fully implemented
-- ✅ **36 Operations** - Create, read, update, delete operations for all resources
-- 🔧 **Production Ready** - Exhaustively tested: 23 of 27 testable endpoints verified working
+- 🎯 **Complete API Coverage** - All 22 Hyros resources fully implemented (API v1.40)
+- ✅ **56 Operations** - Every operation the API documents, including create, read, update and delete where the API supports them
+- 🔧 **Production Ready** - Audited line by line against the v1.40 OpenAPI reference, with live-account verification of testable endpoints
 - 📊 **Advanced Attribution** - Full support for attribution reports and analytics
 - 🔄 **Real-time Tracking** - Track leads, sales, calls, clicks, and conversions
 - 🛡️ **Type Safe** - Full TypeScript implementation with proper error handling
@@ -50,22 +50,24 @@ This node requires a Hyros API Key. You can obtain your API key from your Hyros 
 ## Compatibility
 
 - **n8n version:** 1.0.0 or later
-- **Hyros API version:** v1.0
+- **Hyros API version:** v1.40 (base path `/api/v1.0`)
 
 ## Resources
 
 This node provides complete coverage of the Hyros API with the following resources:
 
 ### Core Resources
-- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date or last-updated date; add and remove tags.
+- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date or last-updated date; add and remove tags, with optional backdating via Tags Date.
 - **Sales** - Manage sales data and track conversions
-- **Orders** - Create and manage orders with items
+- **Orders** - Create, update (replace items and order-level fields) and refund orders
 - **Calls** - Track and manage call events
 
 ### Attribution & Analytics
-- **Attribution** - Get attribution reports for ads and ad accounts
+- **Attribution** - Get attribution reports for ads and ad accounts, single-entity ROAS, and the marginal CAC curve with its saturation point
 - **Ad Accounts** - List the ad accounts connected to Hyros, with the IDs the attribution reports need
 - **Ads** - Retrieve ad data from various platforms (Facebook, Google, TikTok, etc.)
+- **Conversion Definitions** - Create, list, update and delete the definitions that declare which fields a custom conversion captures
+- **Custom Conversions** - Record custom conversion events (demos booked, applications, qualified calls) that show up in the lead journey and reporting
 
 ### Products & Subscriptions
 - **Products** - Create, list, update and delete products, including price and cost of goods
@@ -86,7 +88,11 @@ This node provides complete coverage of the Hyros API with the following resourc
 - **Custom Costs** - Create, list, update and delete custom cost data
 
 ### Webhooks
-- **Webhook Subscriptions** - Create, list, and delete webhook subscriptions for events like `sale.attributed`, `sale.refunded`, `lead.opted.in`, `subscription.created`, and `subscription.status.changed`. Requires an API key with the webhook role enabled in the Hyros admin panel (without it the API returns 401). The Create response includes a one-time `secretKey` for validating the HMAC signature of deliveries.
+- **Webhook Subscriptions** - Create, list, and delete webhook subscriptions for all 11 event types, including `sale.attributed`, `sale.refunded`, `lead.opted.in`, `lead.stage.changed`, `lead.tag.added`, `lead.tag.removed`, `subscription.created`, and `subscription.status.changed`. Requires an API key with the webhook role enabled in the Hyros admin panel (without it the API returns 401). The Create response includes a one-time `secretKey` for validating the HMAC signature of deliveries.
+
+### Agency Access
+
+Agencies can act on a connected client account: set the optional **Accessible Account ID** on the credential and every request runs against that client account instead of your own (sent as the `Accessible-Account-Id` header, API v1.40). Unauthorized targets are rejected by the API with 403.
 
 ## Operations
 
@@ -181,22 +187,20 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 | Feature | Coverage |
 |---------|----------|
-| Resources | ✅ All 20 resources |
-| Operations | ✅ All 48 operations |
+| Resources | ✅ All 22 resources |
+| Operations | ✅ All 56 operations |
 | Parameters | ✅ Complete support |
 | Error Handling | ✅ Complete |
 | Pagination | ✅ Full support |
 | Type Safety | ✅ TypeScript |
-| Testing | ✅ Exhaustive validation (23/27 endpoints verified) |
+| Testing | ✅ Dual QA audits against the v1.40 spec, plus live verification |
 
 ### Testing & Documentation
 
-The node has been exhaustively tested with systematic validation:
-- ✅ **Phase 1 (GET):** 13 passed - All read operations working
-- ✅ **Phase 2 (POST):** 5 passed - Create operations verified
-- ✅ **Phase 3 (PUT):** 3 passed - Update operations confirmed
-- ✅ **Phase 4 (DELETE):** 2 passed - Delete operations tested
-- 🐛 **4 bugs found and fixed** during full testing (v2.3.2-2.3.5)
+Every release is audited line by line against the current OpenAPI reference (v1.40 for 2.10.0), and additions are verified against a live Hyros account whenever an endpoint is testable. Historical milestones:
+- ✅ **v2.3.x:** exhaustive 4-phase live validation (GET/POST/PUT/DELETE) of the original 33-endpoint surface, 4 bugs found and fixed
+- ✅ **v2.8-2.9:** every v1.38/v1.39 addition verified against a live account before shipping
+- ✅ **v2.10.0:** dual independent QA passes reviewing all 22 resources and 56 operations parameter by parameter against the v1.40 spec
 
 ### Known Limitations
 
@@ -205,7 +209,6 @@ The node has been exhaustively tested with systematic validation:
 Historical issues now fixed server-side: Lead Update without a `tags` field (HPC-10694) and ignored GET /leads email/id filters both work correctly as of API v1.38 (verified live, July 2026).
 
 Other documented limitations:
-- **Product Get All:** Endpoint not available in API v1.0 (404); Hyros has announced it for their August 2026 release
 - **Keyword Get All:** Requires Google V2 account integration
 - **Tag Delete:** Endpoint not available in current API version
 - **Eventual Consistency:** Writes are queued - created leads appear in GET requests after roughly 20 seconds, tag updates can take a few minutes (measured July 2026)
@@ -220,10 +223,36 @@ Other documented limitations:
 - ✅ Twitter Ads
 - ✅ Pinterest Ads
 - ✅ Bing Ads
+- ✅ Reddit Ads
+- ✅ AppLovin
+- ✅ Whop Ads
 
 ## Version History
 
-### 2.9.1 (Current)
+### 2.10.0 (Current)
+- **Matches Hyros API v1.40.** Every gap between the API reference and this node was closed, several latent bugs were fixed, and the whole surface (22 resources, 56 operations) went through two independent QA audits, parameter by parameter, before release. Read the details below, and visit [carlosaragon.online](https://carlosaragon.online/) for more automation tooling like this.
+- **Fixed: Domains Get Many hit the wrong path** - the API serves `/domains` under `/api/v1/`, not `/api/v1.0/` like every other endpoint. The node now calls the documented path.
+- **Fixed: Source Create offered integration types the API rejects** - creation only accepts FACEBOOK, GOOGLE, LINKEDIN, SNAPCHAT and TIKTOK; BING, PINTEREST and TWITTER were removed from the Create dropdown (they remain valid as Get Many filters).
+- **Fixed: Product Get Many filters returned 400** - the node sent `ids` and `tags` filters that API v1.40's strict validation rejects with `Unknown parameter`. It now sends the documented filters (`name`, `tag`, `category`, `isRecurringSale`); stored `ids`/`tags` values from old workflows are ignored instead of erroring. A new **Recurring** filter (RECURRING / NON_RECURRING / ALL) was added.
+- **Fixed: Product Update sent field names the API rejects** - the API expects `customCost` and `isRecurringSale`, not `costOfGoods` and `recurring`. The UI field names are unchanged (saved workflows keep working); the node now remaps them before sending. Also new on update: `tag`, `callProduct`, `packages` (send `[]` to clear), and `updateHistoricalSales` to propagate a cost change to existing sales.
+- **New resource: Conversion Definitions** - Create, Get Many, Update and Delete for `/conversion-definition`. Definitions declare the fields a custom conversion captures (at least 3, typed STRING/NUMBER/BOOLEAN/DATE); name and tag are immutable after creation.
+- **New resource: Custom Conversions** - record conversion events (demo booked, application submitted, call qualified) attributed to a lead by email or phone. Custom fields are sent as typed top-level properties; if no definition exists for the tag, Hyros creates one automatically.
+- **Attribution: Get ROAS** - cash collected vs ad spend for a single ad, ad set, campaign or account, always under last click. Choose the `basis`: click date (credits clicks in range) or sale date (revenue collected in range).
+- **Attribution: Get Marginal CAC Curve** - what acquiring the next customer costs at every observed daily spend level, and the saturation point past which the next dollar is wasted. Supports LTV-window or caller-provided CAC ceilings and first/last click models.
+- **Attribution Ads Report: Lead Stage filter** - filter the report to sources with leads in given account stages (sent as the API's `lead_stage` parameter).
+- **Order: Update** - replace an order's items and update order-level fields (stage, taxes, shipping, discount, currency). With `integrationType`, the order can be resolved by an item's external ID. Order items (create and update) also gain `SKU` and `Is Rebill`.
+- **Lead Create/Update: Tags Date** - backdate the assignment date of the tags being applied, for imports, migrations and CRM syncs. Generated sales and source attributions are backdated too.
+- **Tracking Script: 4 new options** - SPA tracking, Ignore Previous URL, Embed on Iframes, and Delete Tracking Script Params (hides tracking parameters from the URL after use).
+- **Webhook Subscriptions: 3 new event types** - `lead.stage.changed`, `lead.tag.added`, `lead.tag.removed` (11 total).
+- **Agency access** - new optional **Accessible Account ID** credential field sends the `Accessible-Account-Id` header on every request, letting agencies act on a connected client account.
+- **Source Update: reassign the tag** - new optional Tag field to rename a source's `@tag`.
+- **Newer ad platforms selectable** - the Source and Ad integration type filters now include Google V2, Reddit, AppLovin and Whop Ads; Click Create adds Google V2.
+- **Cart items: Is Rebill** - mark a cart item as recurring even when it is the first sale, matching the Order items.
+- **Keyword Get: Ad Group ID now optional** - leave it empty to list all keywords, per the spec.
+- **Pagination everywhere** - Return All / Limit added to Ad Accounts, Keywords, Calls, Subscriptions and Clicks, which previously returned only the first page silently.
+- **Subscription Update: price now optional** - the API only requires `ids`; leave Price at 0 to update status or dates without touching the price.
+
+### 2.9.1
 - **Fixes the n8n community scanner check** — the Lead operation list was not alphabetized, which the scanner's `@n8n/community-nodes` ruleset rejects. 2.9.0 published with this error; 2.9.1 clears it. Operation `value`s are unchanged, so saved workflows are unaffected.
 - **Closes the gap that let it through** — `npm run scan` can only scan a *published* package, so it cannot catch this before release. The rule is now enabled in `.eslintrc.js`, making `npm run lint` fail on it pre-release.
 

@@ -24,6 +24,12 @@ export const orderOperations: INodeProperties[] = [
 				description: 'Refund an order',
 				action: 'Refund an order',
 			},
+			{
+				name: 'Update',
+				value: 'update',
+				description: 'Update an order by replacing its items list and optionally updating order-level fields',
+				action: 'Update an order',
+			},
 		],
 		default: 'create',
 	},
@@ -56,7 +62,7 @@ export const orderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['order'],
-				operation: ['create'],
+				operation: ['create', 'update'],
 			},
 		},
 		default: {},
@@ -86,6 +92,13 @@ export const orderFields: INodeProperties[] = [
 						type: 'string',
 						default: '',
 						description: 'Unique identifier of the product coming from the external integration',
+					},
+					{
+						displayName: 'Is Rebill',
+						name: 'isRebill',
+						type: 'boolean',
+						default: false,
+						description: 'Whether the sale is marked as recurring even if it is the first one',
 					},
 					{
 						displayName: 'Item Discount',
@@ -123,6 +136,13 @@ export const orderFields: INodeProperties[] = [
 						type: 'number',
 						default: 1,
 						description: 'The number of copies purchased for the received product. Defaults to 1 if not included.',
+					},
+					{
+						displayName: 'SKU',
+						name: 'sku',
+						type: 'string',
+						default: '',
+						description: 'Unique product reference code',
 					},
 					{
 						displayName: 'Tag',
@@ -231,6 +251,109 @@ export const orderFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Comma-separated list of phone numbers of the lead that made the purchase. Will be used on the Ad attributing process. If no email is entered, a phone number is required.',
+			},
+			{
+				displayName: 'Price Format',
+				name: 'priceFormat',
+				type: 'options',
+				options: [
+					{
+						name: 'Decimal',
+						value: 'DECIMAL',
+					},
+					{
+						name: 'Integer',
+						value: 'INTEGER',
+					},
+				],
+				default: 'DECIMAL',
+				description: 'The sales price format',
+			},
+			{
+				displayName: 'Shipping Cost',
+				name: 'shippingCost',
+				type: 'number',
+				default: 0,
+				description: 'The sales shipping cost. This value will be distributed to items. Default is zero.',
+			},
+			{
+				displayName: 'Stage',
+				name: 'stage',
+				type: 'string',
+				default: '',
+				description: 'The name of a stage to be applied to the customer\'s lead',
+			},
+			{
+				displayName: 'Taxes',
+				name: 'taxes',
+				type: 'number',
+				default: 0,
+				description: 'The order taxes. This value will be distributed to items. Default is zero.',
+			},
+		],
+	},
+	// Update Order (PUT /orders/{id})
+	{
+		displayName: 'Order ID',
+		name: 'orderId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['order'],
+				operation: ['update'],
+			},
+		},
+		default: '',
+		description: 'Identifier of the order to update. By default this is the order ID used during creation. When Integration Type is provided, this value is matched against the External ID of any item belonging to the order instead.',
+	},
+	{
+		displayName: 'Update Fields',
+		name: 'updateFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['order'],
+				operation: ['update'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Cart ID',
+				name: 'cartId',
+				type: 'string',
+				default: '',
+				description: 'Cart identifier to which the order will be linked',
+			},
+			{
+				displayName: 'Currency',
+				name: 'currency',
+				type: 'string',
+				default: '',
+				description: 'Currency code (e.g., EUR, USD). Default is Hyros account setup.',
+			},
+			{
+				displayName: 'External Subscription ID',
+				name: 'externalSubscriptionId',
+				type: 'string',
+				default: '',
+				description: 'Indicates which subscription it belongs to',
+			},
+			{
+				displayName: 'Integration Type',
+				name: 'integrationType',
+				type: 'string',
+				default: '',
+				description: 'External integration the order belongs to (e.g. STRIPE, SHOPIFY, KONNEKTIVE, API). When present, the Order ID is matched against an item External ID for that integration.',
+			},
+			{
+				displayName: 'Order Discount',
+				name: 'orderDiscount',
+				type: 'number',
+				default: 0,
+				description: 'The discount value that will be applied to the complete order, distributing its value evenly across all line items',
 			},
 			{
 				displayName: 'Price Format',

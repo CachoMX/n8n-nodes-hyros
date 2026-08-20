@@ -94,6 +94,18 @@ export const webhookSubscriptionFields: INodeProperties[] = [
 				value: 'lead.origin.assigned',
 			},
 			{
+				name: 'Lead Stage Changed',
+				value: 'lead.stage.changed',
+			},
+			{
+				name: 'Lead Tag Added',
+				value: 'lead.tag.added',
+			},
+			{
+				name: 'Lead Tag Removed',
+				value: 'lead.tag.removed',
+			},
+			{
 				name: 'Sale Attributed',
 				value: 'sale.attributed',
 			},

@@ -38,6 +38,19 @@ export const subscriptionOperations: INodeProperties[] = [
 export const subscriptionFields: INodeProperties[] = [
 	// Get Subscriptions (GET /subscriptions with query params)
 	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['subscription'],
+				operation: ['get'],
+			},
+		},
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
 		displayName: 'Filters',
 		name: 'filters',
 		type: 'collection',
@@ -323,7 +336,6 @@ export const subscriptionFields: INodeProperties[] = [
 		displayName: 'Price',
 		name: 'price',
 		type: 'number',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['subscription'],
@@ -331,7 +343,7 @@ export const subscriptionFields: INodeProperties[] = [
 			},
 		},
 		default: 0,
-		description: 'Subscription price (required)',
+		description: 'New subscription price. The API no longer requires it: leave it at 0 to keep the current price unchanged.',
 	},
 	{
 		displayName: 'Additional Fields',

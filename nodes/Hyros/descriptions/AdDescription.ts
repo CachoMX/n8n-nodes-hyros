@@ -74,6 +74,10 @@ export const adFields: INodeProperties[] = [
 				type: 'options',
 				options: [
 					{
+						name: 'AppLovin',
+						value: 'APPLOVIN',
+					},
+					{
 						name: 'Bing',
 						value: 'BING',
 					},
@@ -86,12 +90,20 @@ export const adFields: INodeProperties[] = [
 						value: 'GOOGLE',
 					},
 					{
+						name: 'Google V2',
+						value: 'GOOGLE_V2',
+					},
+					{
 						name: 'LinkedIn',
 						value: 'LINKEDIN',
 					},
 					{
 						name: 'Pinterest',
 						value: 'PINTEREST',
+					},
+					{
+						name: 'Reddit',
+						value: 'REDDIT',
 					},
 					{
 						name: 'Snapchat',
@@ -104,6 +116,10 @@ export const adFields: INodeProperties[] = [
 					{
 						name: 'Twitter',
 						value: 'TWITTER',
+					},
+					{
+						name: 'Whop Ads',
+						value: 'WHOP_ADS',
 					},
 				],
 				default: 'FACEBOOK',

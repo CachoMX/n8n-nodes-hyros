@@ -66,6 +66,13 @@ export const cartFields: INodeProperties[] = [
 						description: 'Unique identifier of the product coming from the external integration',
 					},
 					{
+						displayName: 'Is Rebill',
+						name: 'isRebill',
+						type: 'boolean',
+						default: false,
+						description: 'Whether the sale is marked as recurring even if it is the first one',
+					},
+					{
 						displayName: 'Name',
 						name: 'name',
 						type: 'string',

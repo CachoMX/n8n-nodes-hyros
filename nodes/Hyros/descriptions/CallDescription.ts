@@ -186,6 +186,19 @@ export const callFields: INodeProperties[] = [
 	},
 	// Get Calls (GET /calls with query params)
 	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['call'],
+				operation: ['get'],
+			},
+		},
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
 		displayName: 'Filters',
 		name: 'filters',
 		type: 'collection',

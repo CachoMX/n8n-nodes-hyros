@@ -14,11 +14,15 @@ export async function hyrosApiRequest(
 	endpoint: string,
 	body: IDataObject = {},
 	qs: IDataObject = {},
+	// GET /domains is served under /api/v1/, unlike every other endpoint.
+	apiPath: string = '/api/v1.0',
 ): Promise<any> {
 	const credentials = await this.getCredentials('hyrosApi');
 	const baseUrl = (credentials.baseUrl as string).replace(/\/+$/, '');
 	const apiKey = credentials.apiKey as string;
-	const fullUrl = `${baseUrl}/api/v1.0${endpoint}`;
+	// Agencies can act on a connected client account (API v1.40): optional on the credential.
+	const accessibleAccountId = ((credentials.accessibleAccountId as string) || '').trim();
+	const fullUrl = `${baseUrl}${apiPath}${endpoint}`;
 
 	// Workaround: n8n httpRequest drops/corrupts headers on PUT with both body and qs.
 	// Use native fetch to bypass n8n's request layer entirely for this case.
@@ -26,12 +30,16 @@ export async function hyrosApiRequest(
 	if (method === 'PUT' && Object.keys(body).length > 0 && Object.keys(qs).length > 0) {
 		try {
 			const queryString = Object.entries(qs).map(([k, v]) => `${k}=${v}`).join('&');
+			const fetchHeaders: Record<string, string> = {
+				'API-Key': apiKey,
+				'Content-Type': 'application/json',
+			};
+			if (accessibleAccountId) {
+				fetchHeaders['Accessible-Account-Id'] = accessibleAccountId;
+			}
 			const response = await fetch(`${fullUrl}?${queryString}`, {
 				method: 'PUT',
-				headers: {
-					'API-Key': apiKey,
-					'Content-Type': 'application/json',
-				},
+				headers: fetchHeaders,
 				body: JSON.stringify(body),
 			});
 			if (!response.ok) {
@@ -51,6 +59,7 @@ export async function hyrosApiRequest(
 		url: fullUrl,
 		headers: {
 			'Content-Type': 'application/json',
+			...(accessibleAccountId ? { 'Accessible-Account-Id': accessibleAccountId } : {}),
 		},
 		json: true,
 	};

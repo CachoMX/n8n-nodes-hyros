@@ -47,6 +47,19 @@ export const clickFields: INodeProperties[] = [
 	},
 	// Get Clicks (GET /leads/clicks with query params)
 	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['click'],
+				operation: ['get'],
+			},
+		},
+		default: false,
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
 		displayName: 'Filters',
 		name: 'filters',
 		type: 'collection',
@@ -161,6 +174,7 @@ export const clickFields: INodeProperties[] = [
 					{ name: 'Bing', value: 'BING' },
 					{ name: 'Facebook', value: 'FACEBOOK' },
 					{ name: 'Google', value: 'GOOGLE' },
+					{ name: 'Google V2', value: 'GOOGLE_V2' },
 					{ name: 'LinkedIn', value: 'LINKEDIN' },
 					{ name: 'Pinterest', value: 'PINTEREST' },
 					{ name: 'Snapchat', value: 'SNAPCHAT' },
