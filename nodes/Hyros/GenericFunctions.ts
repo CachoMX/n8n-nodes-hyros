@@ -14,7 +14,10 @@ export async function hyrosApiRequest(
 	endpoint: string,
 	body: IDataObject = {},
 	qs: IDataObject = {},
-	// GET /domains is served under /api/v1/, unlike every other endpoint.
+	// Escape hatch for endpoints served under a different version segment. The
+	// v1.40 spec claims GET /domains lives under /api/v1/, but the live API
+	// serves it at /api/v1.0/ and 404s the spec path (verified 2026-08-19), so
+	// nothing passes this today.
 	apiPath: string = '/api/v1.0',
 ): Promise<any> {
 	const credentials = await this.getCredentials('hyrosApi');

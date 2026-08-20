@@ -1685,8 +1685,10 @@ export class Hyros implements INodeType {
 				} else if (resource === 'domains') {
 					// DOMAINS OPERATIONS
 					if (operation === 'getAll') {
-						// The spec serves this endpoint under /api/v1/, not /api/v1.0/.
-						const responseData = await hyrosApiRequest.call(this, 'GET', '/domains', {}, {}, '/api/v1');
+						// The v1.40 spec claims this endpoint lives under /api/v1/, but the live
+						// API serves it at /api/v1.0/domains and 404s the spec path (verified
+						// 2026-08-19). Keep the default path the API actually answers on.
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/domains');
 						// API returns array of domain strings, convert to objects
 						const domains = (responseData as string[]).map(domain => ({ domain }));
 						returnData.push(...domains);

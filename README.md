@@ -209,6 +209,8 @@ Every release is audited line by line against the current OpenAPI reference (v1.
 Historical issues now fixed server-side: Lead Update without a `tags` field (HPC-10694) and ignored GET /leads email/id filters both work correctly as of API v1.38 (verified live, July 2026).
 
 Other documented limitations:
+- **Marginal CAC Curve:** documented in API spec v1.40 but the live endpoint returns 404 as of 2026-08-19 (not yet deployed by Hyros). The operation is implemented and will start working as soon as Hyros ships it.
+- **Role-gated endpoints:** Conversion Definitions and ROAS require their API key roles ("Get/Create/Update/Delete Conversion Definitions", "Get ROAS") enabled in the Hyros admin panel; without them the API returns 403.
 - **Keyword Get All:** Requires Google V2 account integration
 - **Tag Delete:** Endpoint not available in current API version
 - **Eventual Consistency:** Writes are queued - created leads appear in GET requests after roughly 20 seconds, tag updates can take a few minutes (measured July 2026)
@@ -231,7 +233,7 @@ Other documented limitations:
 
 ### 2.10.0 (Current)
 - **Matches Hyros API v1.40.** Every gap between the API reference and this node was closed, several latent bugs were fixed, and the whole surface (22 resources, 56 operations) went through two independent QA audits, parameter by parameter, before release. Read the details below, and visit [carlosaragon.online](https://carlosaragon.online/) for more automation tooling like this.
-- **Fixed: Domains Get Many hit the wrong path** - the API serves `/domains` under `/api/v1/`, not `/api/v1.0/` like every other endpoint. The node now calls the documented path.
+- **Domains path verified live** - the v1.40 spec claims `/domains` moved to `/api/v1/`, but the live API still serves it at `/api/v1.0/domains` and 404s the spec path (verified 2026-08-19). The node keeps calling the path that actually answers.
 - **Fixed: Source Create offered integration types the API rejects** - creation only accepts FACEBOOK, GOOGLE, LINKEDIN, SNAPCHAT and TIKTOK; BING, PINTEREST and TWITTER were removed from the Create dropdown (they remain valid as Get Many filters).
 - **Fixed: Product Get Many filters returned 400** - the node sent `ids` and `tags` filters that API v1.40's strict validation rejects with `Unknown parameter`. It now sends the documented filters (`name`, `tag`, `category`, `isRecurringSale`); stored `ids`/`tags` values from old workflows are ignored instead of erroring. A new **Recurring** filter (RECURRING / NON_RECURRING / ALL) was added.
 - **Fixed: Product Update sent field names the API rejects** - the API expects `customCost` and `isRecurringSale`, not `costOfGoods` and `recurring`. The UI field names are unchanged (saved workflows keep working); the node now remaps them before sending. Also new on update: `tag`, `callProduct`, `packages` (send `[]` to clear), and `updateHistoricalSales` to propagate a cost change to existing sales.
