@@ -211,6 +211,16 @@ export const orderFields: INodeProperties[] = [
 				description: 'First name of the lead that made the purchase',
 			},
 			{
+				displayName: 'Hard Cost',
+				name: 'hardCost',
+				type: 'number',
+				typeOptions: {
+					minValue: 0,
+				},
+				default: 0,
+				description: 'A cost the merchant pays out of the order total, typically payment-processor fees (e.g. Stripe). Distributed evenly across the line items and reported as part of the sale hard cost, lowering net profit. Unlike Taxes and Shipping Cost it is not added to the order revenue, because the buyer did not pay it. Must not be negative. Default is 0.',
+			},
+			{
 				displayName: 'Last Name',
 				name: 'lastName',
 				type: 'string',
@@ -340,6 +350,16 @@ export const orderFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Indicates which subscription it belongs to',
+			},
+			{
+				displayName: 'Hard Cost',
+				name: 'hardCost',
+				type: 'number',
+				typeOptions: {
+					minValue: 0,
+				},
+				default: 0,
+				description: 'A cost the merchant pays out of the order total, typically payment-processor fees (e.g. Stripe). Distributed evenly across the line items and reported as part of the sale hard cost, lowering net profit; it is not added to the order revenue. If omitted, the value already stored on the order\'s sales is kept, so a later call can attach the fee without resending it. Send 0 to clear it. Must not be negative.',
 			},
 			{
 				displayName: 'Integration Type',

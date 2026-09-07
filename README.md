@@ -11,9 +11,9 @@ Developed by **[Carlos Aragon](https://carlosaragon.online/)** - A complete n8n 
 
 ## ✨ Features
 
-- 🎯 **Complete API Coverage** - All 22 Hyros resources fully implemented (API v1.40)
-- ✅ **56 Operations** - Every operation the API documents, including create, read, update and delete where the API supports them
-- 🔧 **Production Ready** - Audited line by line against the v1.40 OpenAPI reference, with live-account verification of testable endpoints
+- 🎯 **Complete API Coverage** - All 22 Hyros resources fully implemented (API v1.41)
+- ✅ **57 Operations** - Every operation the API documents, including create, read, update and delete where the API supports them
+- 🔧 **Production Ready** - Audited line by line against the v1.41 OpenAPI reference, with live-account verification of testable endpoints
 - 📊 **Advanced Attribution** - Full support for attribution reports and analytics
 - 🔄 **Real-time Tracking** - Track leads, sales, calls, clicks, and conversions
 - 🛡️ **Type Safe** - Full TypeScript implementation with proper error handling
@@ -50,24 +50,22 @@ This node requires a Hyros API Key. You can obtain your API key from your Hyros 
 ## Compatibility
 
 - **n8n version:** 1.0.0 or later
-- **Hyros API version:** v1.40 (base path `/api/v1.0`)
+- **Hyros API version:** v1.41 (base path `/api/v1.0`)
 
 ## Resources
 
 This node provides complete coverage of the Hyros API with the following resources:
 
 ### Core Resources
-- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date or last-updated date; add and remove tags, with optional backdating via Tags Date.
+- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date, last-updated date or tag-application date (Tag From/To Date); add and remove tags (with optional backdating via Tags Date) and remove lead stages.
 - **Sales** - Manage sales data and track conversions
-- **Orders** - Create, update (replace items and order-level fields) and refund orders
+- **Orders** - Create, update (replace items and order-level fields) and refund orders, including payment-processor fees via Hard Cost
 - **Calls** - Track and manage call events
 
 ### Attribution & Analytics
 - **Attribution** - Get attribution reports for ads and ad accounts, single-entity ROAS, and the marginal CAC curve with its saturation point
 - **Ad Accounts** - List the ad accounts connected to Hyros, with the IDs the attribution reports need
 - **Ads** - Retrieve ad data from various platforms (Facebook, Google, TikTok, etc.)
-- **Conversion Definitions** - Create, list, update and delete the definitions that declare which fields a custom conversion captures
-- **Custom Conversions** - Record custom conversion events (demos booked, applications, qualified calls) that show up in the lead journey and reporting
 
 ### Products & Subscriptions
 - **Products** - Create, list, update and delete products, including price and cost of goods
@@ -76,13 +74,15 @@ This node provides complete coverage of the Hyros API with the following resourc
 ### User & Account
 - **User Info** - Get user account information
 - **Tags** - Retrieve available tags, with lead counts per tag
-- **Sources** - Create, list, update and delete traffic sources (addressed by tag, not by ID)
-- **Stages** - Get lead stages
+- **Sources** - Create, list, update and delete traffic sources (addressed by tag, not by ID), with name and tag filters on Get Many
+- **Stages** - Get lead stages, with Stage From/To Date filters to count the leads that entered each stage inside a period
 - **Domains** - Retrieve verified domains
+- **Request Status** - Poll whether an asynchronous write is PENDING, PROCESSED or FAILED, using the request_id every write returns (statuses retained 2 hours)
 
 ### Tracking
 - **Tracking Script** - Get tracking scripts for your domains
-- **Clicks** - Track click events
+- **URL Rules** - Create, list, update and delete the rules that tag tracked traffic by URL (action, source, sale, subscription and lead-stage flavors)
+- **Clicks** - Track click events, and retrieve the clicks of one or many leads (by Lead ID, Lead IDs or Emails)
 - **Carts** - Create, update and list cart events, filterable to abandoned carts
 - **Keywords** - Retrieve keyword data
 - **Custom Costs** - Create, list, update and delete custom cost data
@@ -188,7 +188,7 @@ This node provides **100% coverage** of the Hyros API v1.0:
 | Feature | Coverage |
 |---------|----------|
 | Resources | ✅ All 22 resources |
-| Operations | ✅ All 56 operations |
+| Operations | ✅ All 57 operations |
 | Parameters | ✅ Complete support |
 | Error Handling | ✅ Complete |
 | Pagination | ✅ Full support |
@@ -197,7 +197,7 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ### Testing & Documentation
 
-Every release is audited line by line against the current OpenAPI reference (v1.40 for 2.10.0), and additions are verified against a live Hyros account whenever an endpoint is testable. Historical milestones:
+Every release is audited line by line against the current OpenAPI reference (v1.41 for 3.0.0), and additions are verified against a live Hyros account whenever an endpoint is testable. Historical milestones:
 - ✅ **v2.3.x:** exhaustive 4-phase live validation (GET/POST/PUT/DELETE) of the original 33-endpoint surface, 4 bugs found and fixed
 - ✅ **v2.8-2.9:** every v1.38/v1.39 addition verified against a live account before shipping
 - ✅ **v2.10.0:** dual independent QA passes reviewing all 22 resources and 56 operations parameter by parameter against the v1.40 spec
@@ -210,7 +210,7 @@ Historical issues now fixed server-side: Lead Update without a `tags` field (HPC
 
 Other documented limitations:
 - **Marginal CAC Curve:** documented in API spec v1.40 but the live endpoint returns 404 as of 2026-08-19 (not yet deployed by Hyros). The operation is implemented and will start working as soon as Hyros ships it.
-- **Role-gated endpoints:** Conversion Definitions and ROAS require their API key roles ("Get/Create/Update/Delete Conversion Definitions", "Get ROAS") enabled in the Hyros admin panel; without them the API returns 403.
+- **Role-gated endpoints:** URL Rules, Request Status and ROAS require their API key roles ("Get/Create/Update/Delete URL Rules", "Get Request Status", "Get ROAS") enabled in the Hyros admin panel; without them the API returns 403.
 - **Keyword Get All:** Requires Google V2 account integration
 - **Tag Delete:** Endpoint not available in current API version
 - **Eventual Consistency:** Writes are queued - created leads appear in GET requests after roughly 20 seconds, tag updates can take a few minutes (measured July 2026)
@@ -231,7 +231,19 @@ Other documented limitations:
 
 ## Version History
 
-### 2.10.0 (Current)
+### 3.0.0 (Current)
+- **Matches Hyros API v1.41.** Major version because the API removed two resources this node shipped in 2.10.0.
+- **Removed: Conversion Definitions and Custom Conversions.** The Hyros API removed the `/conversion-definition` and `/custom-conversion` endpoints entirely; both resources are gone from the node. Workflows still using them must be migrated (URL Rules cover the tagging use cases).
+- **New resource: URL Rules.** Create, Get, Get Many, Update and Delete for `/url-rules`, the rules that tag tracked traffic by URL. All five flavors are supported: action (`!`), source (`@`), sale (`$`), subscription (`#`) and lead-stage (prefix-less tag with Create Lead Stage enabled). Includes words to match and not to match, previous/referrer URL selection, base-domain matching, disregard source, dynamic or manual traffic source and source category, and keyword score groups. Note that Update is a full replacement: omitted optional fields are cleared, and omitting Is Enabled re-enables the rule.
+- **New resource: Request Status.** `GET /requests/{request_id}` reports whether an asynchronous write is PENDING, PROCESSED or FAILED (statuses retained 2 hours). Once PROCESSED it also returns a snapshot of the resource the write produced, so a workflow can poll instead of retrying the write and creating duplicates.
+- **Order Create/Update: Hard Cost.** Attach payment-processor fees (e.g. Stripe) to an order. The cost is distributed evenly across line items and lowers net profit without inflating revenue. On Update, omitting it keeps the stored value and sending 0 clears it; negative values are rejected.
+- **Lead Get Many: Tag From/To Date filters.** Retrieve the leads that had a tag applied inside a period, combined with the Tags filter or on their own.
+- **Lead Update: Remove Lead Stages.** Remove stage names from a lead. Unknown names reject the request with a 400; stages the lead does not hold are ignored.
+- **Stages: Stage From/To Date filters.** Count the leads that entered each stage inside a period ("how many leads entered this stage this week") instead of the default current-stage count.
+- **Source Get Many: Name and Tag filters.** Look up a source by exact name or tag, ignoring case. (The existing Tag field on Source Update, which renames the tag, is unchanged.)
+- **Click Get: Lead IDs and Emails.** Retrieve the clicks of many leads in one call (max 50 each); the single Lead ID parameter keeps working, and exactly one of the three must be provided.
+
+### 2.10.0
 - **Matches Hyros API v1.40.** Every gap between the API reference and this node was closed, several latent bugs were fixed, and the whole surface (22 resources, 56 operations) went through two independent QA audits, parameter by parameter, before release. Read the details below, and visit [carlosaragon.online](https://carlosaragon.online/) for more automation tooling like this.
 - **Domains path verified live** - the v1.40 spec claims `/domains` moved to `/api/v1/`, but the live API still serves it at `/api/v1.0/domains` and 404s the spec path (verified 2026-08-19). The node keeps calling the path that actually answers.
 - **Fixed: Source Create offered integration types the API rejects** - creation only accepts FACEBOOK, GOOGLE, LINKEDIN, SNAPCHAT and TIKTOK; BING, PINTEREST and TWITTER were removed from the Create dropdown (they remain valid as Get Many filters).

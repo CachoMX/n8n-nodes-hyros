@@ -82,6 +82,20 @@ export const stagesFields: INodeProperties[] = [
 				default: '',
 				description: 'The ID of the next page to be retrieved',
 			},
+			{
+				displayName: 'Stage From Date',
+				name: 'stageFromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only the leads the stage was applied to on or after this date are counted (ISO 8601 format). Without the date pair, each stage counts the leads whose current stage it is; with it, the count covers every lead that entered the stage inside the period, so a lead that moved through several stages is counted under each. The stages returned are unaffected. The generic From Date and To Date parameters are not honoured on this endpoint.',
+			},
+			{
+				displayName: 'Stage To Date',
+				name: 'stageToDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only the leads the stage was applied to on or before this date are counted (ISO 8601 format). Must not be earlier than Stage From Date.',
+			},
 		],
 	},
 ];

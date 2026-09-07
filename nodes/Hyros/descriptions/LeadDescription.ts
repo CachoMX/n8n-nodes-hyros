@@ -273,6 +273,20 @@ export const leadFields: INodeProperties[] = [
 				description: 'Comma-separated list of stage names (max 50). Leads whose current stage matches any of them are returned.',
 			},
 			{
+				displayName: 'Tag From Date',
+				name: 'tagFromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only leads that had a tag applied on or after this date (ISO 8601 format). Combined with Tags it returns the leads that received one of those tags inside the period, so a lead tagged before it is left out even if it still holds the tag; on its own it matches any tag applied in the period. Leads whose tag assignment has no recorded date are not retrieved.',
+			},
+			{
+				displayName: 'Tag To Date',
+				name: 'tagToDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only leads that had a tag applied on or before this date (ISO 8601 format). Must not be earlier than Tag From Date.',
+			},
+			{
 				displayName: 'Tags',
 				name: 'tags',
 				type: 'string',
@@ -410,6 +424,18 @@ export const leadFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Comma-separated list of phone numbers. If no email is entered, at least one phone number is required.',
+			},
+			{
+				displayName: 'Remove Lead Stages',
+				name: 'removeLeadStages',
+				type: 'string',
+				default: '',
+				description: 'Comma-separated list of stage names to remove from the lead. An unknown stage name rejects the request with a 400 error; stages the lead does not hold are ignored.',
+				displayOptions: {
+					show: {
+						'/operation': ['update'],
+					},
+				},
 			},
 			{
 				displayName: 'Remove Tags',

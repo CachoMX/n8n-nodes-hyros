@@ -116,14 +116,14 @@ import {
 } from './descriptions/WebhookSubscriptionDescription';
 
 import {
-	conversionDefinitionOperations,
-	conversionDefinitionFields,
-} from './descriptions/ConversionDefinitionDescription';
+	requestStatusOperations,
+	requestStatusFields,
+} from './descriptions/RequestStatusDescription';
 
 import {
-	customConversionOperations,
-	customConversionFields,
-} from './descriptions/CustomConversionDescription';
+	urlRuleOperations,
+	urlRuleFields,
+} from './descriptions/UrlRuleDescription';
 
 export class Hyros implements INodeType {
 	description: INodeTypeDescription = {
@@ -177,14 +177,6 @@ export class Hyros implements INodeType {
 						value: 'click',
 					},
 					{
-						name: 'Conversion Definition',
-						value: 'conversionDefinition',
-					},
-					{
-						name: 'Custom Conversion',
-						value: 'customConversion',
-					},
-					{
 						name: 'Custom Cost',
 						value: 'customCost',
 					},
@@ -209,6 +201,10 @@ export class Hyros implements INodeType {
 						value: 'product',
 					},
 					{
+						name: 'Request Status',
+						value: 'requestStatus',
+					},
+					{
 						name: 'Sale',
 						value: 'sales',
 					},
@@ -231,6 +227,10 @@ export class Hyros implements INodeType {
 					{
 						name: 'Tracking Script',
 						value: 'trackingScript',
+					},
+					{
+						name: 'URL Rule',
+						value: 'urlRule',
 					},
 					{
 						name: 'User Info',
@@ -303,12 +303,12 @@ export class Hyros implements INodeType {
 			// Webhook Subscription
 			...webhookSubscriptionOperations,
 			...webhookSubscriptionFields,
-			// Conversion Definition
-			...conversionDefinitionOperations,
-			...conversionDefinitionFields,
-			// Custom Conversion
-			...customConversionOperations,
-			...customConversionFields,
+			// Request Status
+			...requestStatusOperations,
+			...requestStatusFields,
+			// URL Rule
+			...urlRuleOperations,
+			...urlRuleFields,
 		],
 		usableAsTool: true,
 	};
@@ -365,7 +365,7 @@ export class Hyros implements INodeType {
 
 						// Empty strings must not reach the API: strict validation (v1.38) rejects
 						// a string where these fields expect an array.
-						for (const field of ['phoneNumbers', 'leadIps', 'tags', 'removeTags']) {
+						for (const field of ['phoneNumbers', 'leadIps', 'tags', 'removeTags', 'removeLeadStages']) {
 							if (additionalFields[field] !== undefined) {
 								const values = String(additionalFields[field]).split(',').map(v => v.trim()).filter(v => v.length > 0);
 								if (values.length > 0) {
@@ -439,6 +439,12 @@ export class Hyros implements INodeType {
 							if (tags.length > 0) {
 								qs.tags = tags.map(t => `"${t}"`).join(',');
 							}
+						}
+						if (filters.tagFromDate) {
+							qs.tagFromDate = filters.tagFromDate;
+						}
+						if (filters.tagToDate) {
+							qs.tagToDate = filters.tagToDate;
 						}
 						if (filters.phones) {
 							const phones = (filters.phones as string).split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -644,6 +650,10 @@ export class Hyros implements INodeType {
 							body.phoneNumbers = phoneNumbers;
 							delete additionalFields.phoneNumbers;
 						}
+						// The API rejects a negative hardCost; fail fast with a clear node error.
+						if (typeof additionalFields.hardCost === 'number' && additionalFields.hardCost < 0) {
+							throw new NodeOperationError(this.getNode(), 'Hard Cost must not be negative', { itemIndex: i });
+						}
 
 						// Add remaining additional fields
 						Object.assign(body, additionalFields);
@@ -672,6 +682,12 @@ export class Hyros implements INodeType {
 							}
 							return processedItem;
 						});
+
+						// The API rejects a negative hardCost; fail fast with a clear node error.
+						// Omitting it keeps the stored value, sending 0 clears it.
+						if (typeof updateFields.hardCost === 'number' && updateFields.hardCost < 0) {
+							throw new NodeOperationError(this.getNode(), 'Hard Cost must not be negative', { itemIndex: i });
+						}
 
 						const body: IDataObject = {
 							items: processedItems,
@@ -1195,6 +1211,12 @@ export class Hyros implements INodeType {
 						if (filters.integrationType) {
 							qs.integrationType = filters.integrationType;
 						}
+						if (filters.name) {
+							qs.name = filters.name;
+						}
+						if (filters.tag) {
+							qs.tag = filters.tag;
+						}
 						if (filters.pageId) {
 							qs.pageId = filters.pageId;
 						}
@@ -1372,9 +1394,22 @@ export class Hyros implements INodeType {
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
 						const qs: IDataObject = {};
 
-						// GET /leads/clicks uses query parameters
+						// GET /leads/clicks uses query parameters. Exactly one of leadId, leadIds
+						// or emails must be provided; the API 400s on none, or more than one.
 						if (filters.leadId) {
 							qs.leadId = filters.leadId;
+						}
+						if (filters.leadIds) {
+							const leadIds = (filters.leadIds as string).split(',').map(id => id.trim()).filter(id => id.length > 0);
+							if (leadIds.length > 0) {
+								qs.leadIds = leadIds.map(id => `"${id}"`).join(',');
+							}
+						}
+						if (filters.emails) {
+							const emails = (filters.emails as string).split(',').map(e => e.trim()).filter(e => e.length > 0);
+							if (emails.length > 0) {
+								qs.emails = emails.map(e => `"${e}"`).join(',');
+							}
 						}
 						if (filters.email) {
 							qs.email = filters.email;
@@ -1729,108 +1764,137 @@ export class Hyros implements INodeType {
 						returnData.push({ success: true, result: (responseData as any)?.result, externalId });
 					}
 
-				} else if (resource === 'conversionDefinition') {
-					// CONVERSION DEFINITION OPERATIONS
+				} else if (resource === 'requestStatus') {
+					// REQUEST STATUS OPERATIONS
+					if (operation === 'get') {
+						const requestId = String(this.getNodeParameter('requestId', i) ?? '').trim();
+						if (!requestId) {
+							throw new NodeOperationError(this.getNode(), 'Request ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'GET', `/requests/${encodeURIComponent(requestId)}`);
+						// The status object (requestId, status, eventType, dates, snapshot result) lives in result.
+						returnData.push((responseData as any)?.result || responseData);
+					}
+
+				} else if (resource === 'urlRule') {
+					// URL RULE OPERATIONS
 					if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
 						const qs: IDataObject = {};
-						for (const key of ['ids', 'fromDate', 'toDate', 'pageId']) {
+
+						if (filters.ids) {
+							// Quoted like every other array filter in this node (leads, sales, calls).
+							const ids = (filters.ids as string).split(',').map(id => id.trim()).filter(id => id.length > 0);
+							if (ids.length > 0) {
+								qs.ids = ids.map(id => `"${id}"`).join(',');
+							}
+						}
+						for (const key of ['tag', 'urlRuleActionType', 'fromDate', 'toDate', 'pageId']) {
 							if (filters[key]) {
 								qs[key] = filters[key];
 							}
 						}
 
 						if (returnAll) {
-							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/conversion-definition', {}, qs);
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/url-rules', {}, qs);
 							returnData.push(...responseData);
 						} else {
 							qs.pageSize = this.getNodeParameter('limit', i) as number;
-							const responseData = await hyrosApiRequest.call(this, 'GET', '/conversion-definition', {}, qs);
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/url-rules', {}, qs);
 							returnData.push(...((responseData as any).result || []));
 						}
+
+					} else if (operation === 'get') {
+						const urlRuleId = String(this.getNodeParameter('urlRuleId', i) ?? '').trim();
+						if (!urlRuleId) {
+							throw new NodeOperationError(this.getNode(), 'URL Rule ID is required', { itemIndex: i });
+						}
+						const responseData = await hyrosApiRequest.call(this, 'GET', `/url-rules/${encodeURIComponent(urlRuleId)}`);
+						// The envelope carries at most one element; an empty array means no rule has that id.
+						returnData.push(...((responseData as any).result || []));
 
 					} else if (operation === 'create' || operation === 'update') {
 						const name = this.getNodeParameter('name', i) as string;
 						const tag = this.getNodeParameter('tag', i) as string;
-						const fieldsData = this.getNodeParameter('conversionFields', i) as IDataObject;
-						const conversionFields = (fieldsData as any).field || [];
-						if (!Array.isArray(conversionFields) || conversionFields.length < 3) {
-							throw new NodeOperationError(this.getNode(), 'At least 3 conversion fields are required', { itemIndex: i });
+						const wordsToMatch = String(this.getNodeParameter('wordsToMatch', i) ?? '')
+							.split(',').map(w => w.trim()).filter(w => w.length > 0);
+						const sourceRuleTypes = this.getNodeParameter('sourceRuleTypes', i) as string[];
+						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+
+						if (wordsToMatch.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Words to Match must contain at least one non-empty value', { itemIndex: i });
+						}
+						// required:true on a multiOptions does not stop an empty selection in the n8n UI
+						if (!Array.isArray(sourceRuleTypes) || sourceRuleTypes.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one source rule type is required', { itemIndex: i });
 						}
 
 						const body: IDataObject = {
 							name,
 							tag,
-							conversionFields,
+							wordsToMatch,
+							sourceRuleTypes,
 						};
 
-						if (operation === 'update') {
-							const conversionDefinitionId = String(this.getNodeParameter('conversionDefinitionId', i) ?? '').trim();
-							if (!conversionDefinitionId) {
-								throw new NodeOperationError(this.getNode(), 'Conversion Definition ID is required', { itemIndex: i });
+						if (additionalFields.wordsNotToMatch) {
+							const words = String(additionalFields.wordsNotToMatch)
+								.split(',').map(w => w.trim()).filter(w => w.length > 0);
+							if (words.length > 0) {
+								body.wordsNotToMatch = words;
 							}
-							body.id = conversionDefinitionId;
-							const responseData = await hyrosApiRequest.call(this, 'PUT', '/conversion-definition', body);
-							returnData.push({ success: true, result: (responseData as any).result });
+						}
+						// Both accept at most one value, so the UI takes a single string and wraps it.
+						if (additionalFields.trafficSourceToMatch) {
+							body.trafficSourceToMatch = [String(additionalFields.trafficSourceToMatch).trim()];
+						}
+						if (additionalFields.sourceCategoryToMatch) {
+							body.sourceCategoryToMatch = [String(additionalFields.sourceCategoryToMatch).trim()];
+						}
+						for (const key of ['trafficSourceCategory', 'sourceCategory']) {
+							if (additionalFields[key]) {
+								body[key] = additionalFields[key];
+							}
+						}
+						for (const flag of ['applyBaseDomain', 'disregardSource', 'isEnabled', 'createLeadStage']) {
+							if (additionalFields[flag] !== undefined) {
+								body[flag] = additionalFields[flag];
+							}
+						}
+						if (additionalFields.scores) {
+							const scoreEntries = ((additionalFields.scores as IDataObject).score || []) as IDataObject[];
+							const scores = scoreEntries
+								.map((entry) => ({
+									keywords: String(entry.keywords ?? '').split(',').map(k => k.trim()).filter(k => k.length > 0),
+									score: entry.score ?? 0,
+								}))
+								.filter((entry) => entry.keywords.length > 0);
+							if (scores.length > 0) {
+								body.scores = scores;
+							}
+						}
+
+						if (operation === 'update') {
+							const urlRuleId = String(this.getNodeParameter('urlRuleId', i) ?? '').trim();
+							if (!urlRuleId) {
+								throw new NodeOperationError(this.getNode(), 'URL Rule ID is required', { itemIndex: i });
+							}
+							// PUT is a full replacement: omitted optional fields are cleared by the API.
+							const responseData = await hyrosApiRequest.call(this, 'PUT', `/url-rules/${encodeURIComponent(urlRuleId)}`, body);
+							returnData.push({ success: true, result: (responseData as any).result, urlRuleId });
 						} else {
-							const responseData = await hyrosApiRequest.call(this, 'POST', '/conversion-definition', body);
+							// Synchronous: result carries the new rule's ur-<id>.
+							const responseData = await hyrosApiRequest.call(this, 'POST', '/url-rules', body);
 							returnData.push({ success: true, result: (responseData as any).result });
 						}
 
 					} else if (operation === 'delete') {
-						const conversionDefinitionId = String(this.getNodeParameter('conversionDefinitionId', i) ?? '').trim();
-						if (!conversionDefinitionId) {
-							throw new NodeOperationError(this.getNode(), 'Conversion Definition ID is required', { itemIndex: i });
+						const urlRuleId = String(this.getNodeParameter('urlRuleId', i) ?? '').trim();
+						if (!urlRuleId) {
+							throw new NodeOperationError(this.getNode(), 'URL Rule ID is required', { itemIndex: i });
 						}
-						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/conversion-definition/${encodeURIComponent(conversionDefinitionId)}`);
-						returnData.push({ success: true, result: (responseData as any)?.result, conversionDefinitionId });
-					}
-
-				} else if (resource === 'customConversion') {
-					// CUSTOM CONVERSION OPERATIONS
-					if (operation === 'create') {
-						const tag = this.getNodeParameter('tag', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
-						const customFieldsData = this.getNodeParameter('customFieldsUi', i, {}) as IDataObject;
-
-						// The body is flat: tag, lead fields, and every custom field at the top level.
-						const body: IDataObject = { tag };
-
-						for (const field of ['phoneNumbers', 'leadIps']) {
-							if (additionalFields[field] !== undefined) {
-								const values = String(additionalFields[field]).split(',').map(v => v.trim()).filter(v => v.length > 0);
-								if (values.length > 0) {
-									body[field] = values;
-								}
-								delete additionalFields[field];
-							}
-						}
-						Object.assign(body, additionalFields);
-
-						const customFields = (customFieldsData as any).field || [];
-						for (const field of customFields as IDataObject[]) {
-							const fieldName = String(field.name ?? '').trim();
-							if (!fieldName) {
-								continue;
-							}
-							const rawValue = String(field.value ?? '');
-							// The API infers each custom field's type from the JSON value sent.
-							if (field.type === 'number') {
-								const parsed = Number(rawValue);
-								if (Number.isNaN(parsed)) {
-									throw new NodeOperationError(this.getNode(), `Custom field "${fieldName}" is not a valid number: ${rawValue}`, { itemIndex: i });
-								}
-								body[fieldName] = parsed;
-							} else if (field.type === 'boolean') {
-								body[fieldName] = rawValue.toLowerCase() === 'true';
-							} else {
-								body[fieldName] = rawValue;
-							}
-						}
-
-						const responseData = await hyrosApiRequest.call(this, 'POST', '/custom-conversion', body);
-						returnData.push({ success: true, result: (responseData as any).result });
+						const responseData = await hyrosApiRequest.call(this, 'DELETE', `/url-rules/${encodeURIComponent(urlRuleId)}`);
+						returnData.push({ success: true, result: (responseData as any)?.result, urlRuleId });
 					}
 
 				} else if (resource === 'stages') {
@@ -1842,6 +1906,12 @@ export class Hyros implements INodeType {
 
 						if (filters.name) {
 							qs.name = filters.name;
+						}
+						if (filters.stageFromDate) {
+							qs.stageFromDate = filters.stageFromDate;
+						}
+						if (filters.stageToDate) {
+							qs.stageToDate = filters.stageToDate;
 						}
 						if (filters.pageId) {
 							qs.pageId = filters.pageId;
