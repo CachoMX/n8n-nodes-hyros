@@ -527,6 +527,13 @@ export const attributionFields: INodeProperties[] = [
 				description: 'Whether the date range will be used to filter sales within the range (false) or if it will be used to filter the clicks that ended up triggering them',
 			},
 			{
+				displayName: 'Exclude Hard Costs',
+				name: 'excludeHardCosts',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to subtract hard costs (taxes, shipping and cost of goods) from the reported revenue, the way the report screens in the app do',
+			},
+			{
 				displayName: 'Forecasting Option',
 				name: 'forecastingOption',
 				type: 'options',
@@ -608,6 +615,18 @@ export const attributionFields: INodeProperties[] = [
 				description: 'Field to select the filter related with the new customer configuration you want from the report',
 			},
 			{
+				displayName: 'Newest First',
+				name: 'newestFirst',
+				type: 'boolean',
+				default: false,
+				description: "Whether to read the ad account's sources newest first, so the first page holds the most recently created ones. Only applies when Is Ad Account ID is on.",
+				displayOptions: {
+					show: {
+						'/operation': ['getAdsReport'],
+					},
+				},
+			},
+			{
 				displayName: 'Page ID',
 				name: 'pageId',
 				type: 'string',
@@ -632,6 +651,18 @@ export const attributionFields: INodeProperties[] = [
 				displayOptions: {
 					show: {
 						'/operation': ['getAdsReport'],
+					},
+				},
+			},
+			{
+				displayName: 'Report Source Visibility',
+				name: 'reportSourceVisibility',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to resolve source links with the visibility rules the report screens in the app use: deleted source links are excluded and, under the scientific model, link activity is evaluated from Scientific Days Range days before the start date',
+				displayOptions: {
+					show: {
+						'/operation': ['getAdAccountReport'],
 					},
 				},
 			},

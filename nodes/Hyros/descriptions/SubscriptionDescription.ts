@@ -126,6 +126,20 @@ export const subscriptionFields: INodeProperties[] = [
 				default: '',
 				description: 'Only subscriptions before this date (ISO 8601 format)',
 			},
+			{
+				displayName: 'Updated From Date',
+				name: 'updatedFromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only subscriptions modified on or after this date. Use this for incremental sync: From Date and To Date filter on the creation date and miss records changed later.',
+			},
+			{
+				displayName: 'Updated To Date',
+				name: 'updatedToDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only subscriptions modified on or before this date',
+			},
 		],
 	},
 	// Create Subscription (POST /subscriptions) - Required fields

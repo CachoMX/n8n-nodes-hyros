@@ -11,9 +11,9 @@ Developed by **[Carlos Aragon](https://carlosaragon.online/)** - A complete n8n 
 
 ## ✨ Features
 
-- 🎯 **Complete API Coverage** - All 22 Hyros resources fully implemented (API v1.41)
+- 🎯 **Complete API Coverage** - All 23 Hyros resources fully implemented (API v1.43)
 - ✅ **57 Operations** - Every operation the API documents, including create, read, update and delete where the API supports them
-- 🔧 **Production Ready** - Audited line by line against the v1.41 OpenAPI reference, with live-account verification of testable endpoints
+- 🔧 **Production Ready** - Audited line by line against the v1.43 OpenAPI reference, with live-account verification of testable endpoints
 - 📊 **Advanced Attribution** - Full support for attribution reports and analytics
 - 🔄 **Real-time Tracking** - Track leads, sales, calls, clicks, and conversions
 - 🛡️ **Type Safe** - Full TypeScript implementation with proper error handling
@@ -50,26 +50,27 @@ This node requires a Hyros API Key. You can obtain your API key from your Hyros 
 ## Compatibility
 
 - **n8n version:** 1.0.0 or later
-- **Hyros API version:** v1.41 (base path `/api/v1.0`)
+- **Hyros API version:** v1.43 (base path `/api/v1.0`)
 
 ## Resources
 
 This node provides complete coverage of the Hyros API with the following resources:
 
 ### Core Resources
-- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date, last-updated date or tag-application date (Tag From/To Date); add and remove tags (with optional backdating via Tags Date) and remove lead stages.
-- **Sales** - Manage sales data and track conversions
+- **Leads** - Create, read, update and delete leads, and retrieve journey data. Filter by tag, stage, phone, join date, last-updated date or tag-application date (Tag From/To Date); add and remove tags (with optional backdating via Tags Date) and remove lead stages. Add Tags applies the same tags to up to 50 leads in one call, and Count By Attribute returns lead counts grouped by tag, stage, or first/last source tag.
+- **Sales** - Manage sales data and track conversions, with Updated From/To Date filters for incremental sync
 - **Orders** - Create, update (replace items and order-level fields) and refund orders, including payment-processor fees via Hard Cost
-- **Calls** - Track and manage call events
+- **Calls** - Track and manage call events, with Updated From/To Date filters for incremental sync
 
 ### Attribution & Analytics
 - **Attribution** - Get attribution reports for ads and ad accounts, single-entity ROAS, and the marginal CAC curve with its saturation point
+- **Conversion Paths** - Retrieve sales, calls or leads with the ordered source touches each one was attributed with, to run your own attribution model over Hyros data
 - **Ad Accounts** - List the ad accounts connected to Hyros, with the IDs the attribution reports need
 - **Ads** - Retrieve ad data from various platforms (Facebook, Google, TikTok, etc.)
 
 ### Products & Subscriptions
 - **Products** - Create, list, update and delete products, including price and cost of goods
-- **Subscriptions** - Track recurring subscriptions
+- **Subscriptions** - Track recurring subscriptions, with Updated From/To Date filters for incremental sync
 
 ### User & Account
 - **User Info** - Get user account information
@@ -187,8 +188,8 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 | Feature | Coverage |
 |---------|----------|
-| Resources | ✅ All 22 resources |
-| Operations | ✅ All 57 operations |
+| Resources | ✅ All 23 resources |
+| Operations | ✅ All 60 operations |
 | Parameters | ✅ Complete support |
 | Error Handling | ✅ Complete |
 | Pagination | ✅ Full support |
@@ -197,7 +198,7 @@ This node provides **100% coverage** of the Hyros API v1.0:
 
 ### Testing & Documentation
 
-Every release is audited line by line against the current OpenAPI reference (v1.41 for 3.0.0), and additions are verified against a live Hyros account whenever an endpoint is testable. Historical milestones:
+Every release is audited line by line against the current OpenAPI reference (v1.43 for 3.1.0), and additions are verified against a live Hyros account whenever an endpoint is testable. Historical milestones:
 - ✅ **v2.3.x:** exhaustive 4-phase live validation (GET/POST/PUT/DELETE) of the original 33-endpoint surface, 4 bugs found and fixed
 - ✅ **v2.8-2.9:** every v1.38/v1.39 addition verified against a live account before shipping
 - ✅ **v2.10.0:** dual independent QA passes reviewing all 22 resources and 56 operations parameter by parameter against the v1.40 spec
@@ -231,7 +232,18 @@ Other documented limitations:
 
 ## Version History
 
-### 3.0.0 (Current)
+### 3.1.0 (Current)
+- **Matches Hyros API v1.43.** Every addition below was verified against a live account before shipping.
+- **New resource: Conversion Paths.** `GET /conversion-paths` returns the sales, calls or leads of a date range, each with the ordered source touches it was attributed with, so you can run your own attribution model (weights, decay, exclusions) over Hyros data. Includes an attribution window in days and full pagination.
+- **Lead: Add Tags.** `POST /leads/tags` applies the same tags to up to 50 lead IDs and 50 emails in one call, with an optional Tags Date to backdate them. Poll the returned request_id with Request Status to see the tagged leads.
+- **Lead: Count By Attribute.** `GET /leads/aggregation` counts leads grouped by tag, current stage, or first/last source tag, with the same filters as Get Many. Use totalCount for the total: groups overlap and leads without the attribute belong to none.
+- **Incremental sync for Sales, Calls and Subscriptions.** Updated From/To Date filters return only the records changed in a window, like Leads already had.
+- **Attribution reports: Exclude Hard Costs** on both reports, **Newest First** on the ads report (with Is Ad Account ID) and **Report Source Visibility** on the ad account report, which excludes deleted source links the way the report screens in the app do.
+- **Dates from expressions now work on Tags Date and Lead Stage date.** Those two fields reject milliseconds, which is what `{{ $now.toISO() }}` produces; the node now drops them before sending.
+- **Error bodies are never reported as success.** A response carrying `result: ERROR` fails the node with the API's message even if it arrives with a 200 status.
+- **New Hyros logo.**
+
+### 3.0.0
 - **Matches Hyros API v1.41.** Major version because the API removed two resources this node shipped in 2.10.0.
 - **Removed: Conversion Definitions and Custom Conversions.** The Hyros API removed the `/conversion-definition` and `/custom-conversion` endpoints entirely; both resources are gone from the node. Workflows still using them must be migrated (URL Rules cover the tagging use cases).
 - **New resource: URL Rules.** Create, Get, Get Many, Update and Delete for `/url-rules`, the rules that tag tracked traffic by URL. All five flavors are supported: action (`!`), source (`@`), sale (`$`), subscription (`#`) and lead-stage (prefix-less tag with Create Lead Stage enabled). Includes words to match and not to match, previous/referrer URL selection, base-domain matching, disregard source, dynamic or manual traffic source and source category, and keyword score groups. Note that Update is a full replacement: omitted optional fields are cleared, and omitting Is Enabled re-enables the rule.

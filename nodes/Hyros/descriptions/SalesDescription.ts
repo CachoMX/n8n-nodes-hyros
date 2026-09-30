@@ -172,6 +172,20 @@ export const salesFields: INodeProperties[] = [
 				default: '',
 				description: 'Only sales whose join date is older than this will be retrieved (ISO 8601 format)',
 			},
+			{
+				displayName: 'Updated From Date',
+				name: 'updatedFromDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only sales modified on or after this date. Use this for incremental sync: From Date and To Date filter on the creation date and miss records changed later.',
+			},
+			{
+				displayName: 'Updated To Date',
+				name: 'updatedToDate',
+				type: 'dateTime',
+				default: '',
+				description: 'Only sales modified on or before this date',
+			},
 		],
 	},
 	// Update Sale (PUT /sales with query params)

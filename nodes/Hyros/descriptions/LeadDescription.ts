@@ -13,6 +13,18 @@ export const leadOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Add Tags',
+				value: 'addTags',
+				description: 'Apply the same tags to up to 50 leads in one call',
+				action: 'Add tags to leads',
+			},
+			{
+				name: 'Count By Attribute',
+				value: 'countByAttribute',
+				description: 'Count leads grouped by tag, stage, or first/last source tag',
+				action: 'Count leads by attribute',
+			},
+			{
 				name: 'Create',
 				value: 'create',
 				description: 'Create a new lead',
@@ -46,6 +58,98 @@ export const leadOperations: INodeProperties[] = [
 		default: 'create',
 	},
 ];
+
+// Search filters shared by Get Many (GET /leads) and Count By Attribute (GET /leads/aggregation).
+// Page ID is added only to Get Many: /leads/aggregation rejects unknown parameters (verified live).
+const leadSearchFilterOptions: INodeProperties[] = [
+	{
+		displayName: 'Emails',
+		name: 'emails',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of emails to search (max 50)',
+	},
+	{
+		displayName: 'From Date',
+		name: 'fromDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads whose join date is more recent than this (ISO 8601 format)',
+	},
+	{
+		displayName: 'IDs',
+		name: 'ids',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of lead IDs (max 50)',
+	},
+	{
+		displayName: 'Phones',
+		name: 'phones',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of phone numbers (max 50). Matched on trailing digits, so formatting, spaces and country codes are tolerated.',
+	},
+	{
+		displayName: 'Stage',
+		name: 'stage',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of stage names (max 50). Leads whose current stage matches any of them are returned.',
+	},
+	{
+		displayName: 'Tag From Date',
+		name: 'tagFromDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads that had a tag applied on or after this date (ISO 8601 format). Combined with Tags it returns the leads that received one of those tags inside the period, so a lead tagged before it is left out even if it still holds the tag; on its own it matches any tag applied in the period. Leads whose tag assignment has no recorded date are not retrieved.',
+	},
+	{
+		displayName: 'Tag To Date',
+		name: 'tagToDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads that had a tag applied on or before this date (ISO 8601 format). Must not be earlier than Tag From Date.',
+	},
+	{
+		displayName: 'Tags',
+		name: 'tags',
+		type: 'string',
+		default: '',
+		description: 'Comma-separated list of tag names (max 50). Only leads holding any of the tags are included. Tags are matched exactly, including any prefix (e.g. !Tag1).',
+	},
+	{
+		displayName: 'To Date',
+		name: 'toDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads whose join date is before this (ISO 8601 format)',
+	},
+	{
+		displayName: 'Updated From Date',
+		name: 'updatedFromDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads modified on or after this date. Use this for incremental sync: From Date and To Date filter on the join date and miss leads that were later re-tagged or re-staged.',
+	},
+	{
+		displayName: 'Updated To Date',
+		name: 'updatedToDate',
+		type: 'dateTime',
+		default: '',
+		description: 'Only leads modified on or before this date',
+	},
+];
+
+const pageIdFilterOption: INodeProperties = {
+	displayName: 'Page ID',
+	name: 'pageId',
+	type: 'string',
+	default: '',
+	description: 'The ID of the next page to be retrieved',
+};
+
+const byDisplayName = (a: INodeProperties, b: INodeProperties) => a.displayName.localeCompare(b.displayName);
 
 export const leadFields: INodeProperties[] = [
 	// Create Lead
@@ -229,90 +333,142 @@ export const leadFields: INodeProperties[] = [
 				operation: ['getAll'],
 			},
 		},
+		options: [...leadSearchFilterOptions, pageIdFilterOption].sort(byDisplayName),
+	},
+	// Count By Attribute (GET /leads/aggregation)
+	{
+		displayName: 'Attribute',
+		name: 'attribute',
+		type: 'options',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['countByAttribute'],
+			},
+		},
 		options: [
 			{
-				displayName: 'Emails',
-				name: 'emails',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of emails to search (max 50)',
+				name: 'First Source Tag',
+				value: 'FIRST_SOURCE_TAG',
+				description: 'Group by the tag of the first source link the lead was seen through',
 			},
 			{
-				displayName: 'From Date',
-				name: 'fromDate',
+				name: 'Last Source Tag',
+				value: 'LAST_SOURCE_TAG',
+				description: 'Group by the tag of the last source link the lead was seen through',
+			},
+			{
+				name: 'Stage',
+				value: 'STAGE',
+				description: "Group by the lead's current stage",
+			},
+			{
+				name: 'Tag',
+				value: 'TAG',
+				description: 'Group by tag name; a lead is counted once per tag it holds',
+			},
+		],
+		default: 'TAG',
+		description:
+			'The attribute to group leads by. Groups should not be summed to get a total: use totalCount, since a lead without the attribute belongs to no group and a lead with several values belongs to several.',
+	},
+	{
+		displayName: 'Groups Limit',
+		name: 'groupsLimit',
+		type: 'number',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['countByAttribute'],
+			},
+		},
+		typeOptions: {
+			minValue: 1,
+			maxValue: 1000,
+		},
+		default: 250,
+		description:
+			'Max number of groups to return, largest first. remainingCount in the response counts the records left out of the returned groups, so raising the limit by that number returns them all.',
+	},
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['countByAttribute'],
+			},
+		},
+		options: leadSearchFilterOptions,
+	},
+	// Add Tags (POST /leads/tags)
+	{
+		displayName: 'Lead IDs',
+		name: 'ids',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['addTags'],
+			},
+		},
+		default: '',
+		description: 'Comma-separated list of lead IDs to tag (max 50). Provide Lead IDs, Emails, or both.',
+	},
+	{
+		displayName: 'Emails',
+		name: 'emails',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['addTags'],
+			},
+		},
+		default: '',
+		description:
+			'Comma-separated list of emails to tag (max 50), matched exactly. An email that matches several leads tags all of them.',
+	},
+	{
+		displayName: 'Tags',
+		name: 'tags',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['addTags'],
+			},
+		},
+		default: '',
+		placeholder: '!action-tag, @source-tag',
+		description:
+			'Comma-separated list of tags to apply to every selected lead (max 50). Prefix $ for a sale tag, @ for a source tag, ! for an action tag; no prefix defaults to an action tag. A $ tag matching a product generates a sale for each lead that did not already carry it.',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['lead'],
+				operation: ['addTags'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Tags Date',
+				name: 'tagsDate',
 				type: 'dateTime',
 				default: '',
-				description: 'Only leads whose join date is more recent than this (ISO 8601 format)',
-			},
-			{
-				displayName: 'IDs',
-				name: 'ids',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of lead IDs (max 50)',
-			},
-			{
-				displayName: 'Page ID',
-				name: 'pageId',
-				type: 'string',
-				default: '',
-				description: 'The ID of the next page to be retrieved',
-			},
-			{
-				displayName: 'Phones',
-				name: 'phones',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of phone numbers (max 50). Matched on trailing digits, so formatting, spaces and country codes are tolerated.',
-			},
-			{
-				displayName: 'Stage',
-				name: 'stage',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of stage names (max 50). Leads whose current stage matches any of them are returned.',
-			},
-			{
-				displayName: 'Tag From Date',
-				name: 'tagFromDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads that had a tag applied on or after this date (ISO 8601 format). Combined with Tags it returns the leads that received one of those tags inside the period, so a lead tagged before it is left out even if it still holds the tag; on its own it matches any tag applied in the period. Leads whose tag assignment has no recorded date are not retrieved.',
-			},
-			{
-				displayName: 'Tag To Date',
-				name: 'tagToDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads that had a tag applied on or before this date (ISO 8601 format). Must not be earlier than Tag From Date.',
-			},
-			{
-				displayName: 'Tags',
-				name: 'tags',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of tag names (max 50). Leads matching any of the tags are returned. Tags are matched exactly, including any prefix (e.g. !Tag1).',
-			},
-			{
-				displayName: 'To Date',
-				name: 'toDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads whose join date is before this (ISO 8601 format)',
-			},
-			{
-				displayName: 'Updated From Date',
-				name: 'updatedFromDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads modified on or after this date. Use this for incremental sync: From Date and To Date filter on the join date and miss leads that were later re-tagged or re-staged.',
-			},
-			{
-				displayName: 'Updated To Date',
-				name: 'updatedToDate',
-				type: 'dateTime',
-				default: '',
-				description: 'Only leads modified on or before this date',
+				description:
+					'Assignment date for every tag in this request, to backdate historical tags (defaults to now, cannot be in the future). Action tags a lead already carries are re-dated to this date.',
 			},
 		],
 	},

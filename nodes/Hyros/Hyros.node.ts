@@ -11,8 +11,11 @@ import {
 } from 'n8n-workflow';
 
 import {
+	buildLeadSearchQs,
 	hyrosApiRequest,
 	hyrosApiRequestAllItems,
+	splitCsv,
+	toSecondsPrecision,
 } from './GenericFunctions';
 
 import {
@@ -79,6 +82,11 @@ import {
 	userInfoOperations,
 	userInfoFields,
 } from './descriptions/UserInfoDescription';
+
+import {
+	conversionPathOperations,
+	conversionPathFields,
+} from './descriptions/ConversionPathDescription';
 
 import {
 	keywordOperations,
@@ -175,6 +183,10 @@ export class Hyros implements INodeType {
 					{
 						name: 'Click',
 						value: 'click',
+					},
+					{
+						name: 'Conversion Path',
+						value: 'conversionPath',
 					},
 					{
 						name: 'Custom Cost',
@@ -288,6 +300,9 @@ export class Hyros implements INodeType {
 			// Keyword
 			...keywordOperations,
 			...keywordFields,
+
+			...conversionPathOperations,
+			...conversionPathFields,
 			// Subscription
 			...subscriptionOperations,
 			...subscriptionFields,
@@ -348,6 +363,8 @@ export class Hyros implements INodeType {
 						// A blank Tags Date from the UI must not reach the API.
 						if (!additionalFields.tagsDate) {
 							delete additionalFields.tagsDate;
+						} else {
+							additionalFields.tagsDate = toSecondsPrecision(additionalFields.tagsDate);
 						}
 
 						// Add remaining fields
@@ -378,6 +395,8 @@ export class Hyros implements INodeType {
 						// A blank Tags Date from the UI must not reach the API.
 						if (!additionalFields.tagsDate) {
 							delete additionalFields.tagsDate;
+						} else {
+							additionalFields.tagsDate = toSecondsPrecision(additionalFields.tagsDate);
 						}
 
 						if (additionalFields.leadStage) {
@@ -388,6 +407,8 @@ export class Hyros implements INodeType {
 								// (v1.38) may reject an empty date string.
 								if (!stageDetails.date) {
 									delete stageDetails.date;
+								} else {
+									stageDetails.date = toSecondsPrecision(stageDetails.date);
 								}
 								if (stageDetails.name) {
 									body.leadStage = stageDetails;
@@ -423,53 +444,7 @@ export class Hyros implements INodeType {
 					} else if (operation === 'getAll') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const filters = this.getNodeParameter('filters', i) as IDataObject;
-						const qs: IDataObject = {};
-
-						// Format emails and IDs with quotes if provided
-						if (filters.emails) {
-							const emails = (filters.emails as string).split(',').map(e => e.trim());
-							qs.emails = emails.map(e => `"${e}"`).join(',');
-						}
-						if (filters.ids) {
-							const ids = (filters.ids as string).split(',').map(id => id.trim());
-							qs.ids = ids.map(id => `"${id}"`).join(',');
-						}
-						if (filters.tags) {
-							const tags = (filters.tags as string).split(',').map(t => t.trim()).filter(t => t.length > 0);
-							if (tags.length > 0) {
-								qs.tags = tags.map(t => `"${t}"`).join(',');
-							}
-						}
-						if (filters.tagFromDate) {
-							qs.tagFromDate = filters.tagFromDate;
-						}
-						if (filters.tagToDate) {
-							qs.tagToDate = filters.tagToDate;
-						}
-						if (filters.phones) {
-							const phones = (filters.phones as string).split(',').map(p => p.trim()).filter(p => p.length > 0);
-							if (phones.length > 0) {
-								qs.phones = phones.map(p => `"${p}"`).join(',');
-							}
-						}
-						if (filters.stage) {
-							const stages = (filters.stage as string).split(',').map(st => st.trim()).filter(st => st.length > 0);
-							if (stages.length > 0) {
-								qs.stage = stages.map(st => `"${st}"`).join(',');
-							}
-						}
-						if (filters.fromDate) {
-							qs.fromDate = filters.fromDate;
-						}
-						if (filters.toDate) {
-							qs.toDate = filters.toDate;
-						}
-						if (filters.updatedFromDate) {
-							qs.updatedFromDate = filters.updatedFromDate;
-						}
-						if (filters.updatedToDate) {
-							qs.updatedToDate = filters.updatedToDate;
-						}
+						const qs: IDataObject = buildLeadSearchQs(filters);
 						if (filters.pageId) {
 							qs.pageId = filters.pageId;
 						}
@@ -484,6 +459,50 @@ export class Hyros implements INodeType {
 							const leads = (responseData as any).result || [];
 							returnData.push(...leads);
 						}
+
+					} else if (operation === 'countByAttribute') {
+						const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
+						const qs: IDataObject = {
+							...buildLeadSearchQs(filters),
+							attribute: this.getNodeParameter('attribute', i),
+							groupsLimit: this.getNodeParameter('groupsLimit', i, 250),
+						};
+
+						const responseData = await hyrosApiRequest.call(this, 'GET', '/leads/aggregation', {}, qs);
+						// One object per item: { groups, remainingCount, totalCount }.
+						returnData.push((responseData as any).result || {});
+
+					} else if (operation === 'addTags') {
+						const ids = splitCsv(this.getNodeParameter('ids', i, ''));
+						const emails = splitCsv(this.getNodeParameter('emails', i, ''));
+						const tags = splitCsv(this.getNodeParameter('tags', i, ''));
+						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+						if (ids.length === 0 && emails.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'Provide Lead IDs, Emails, or both', { itemIndex: i });
+						}
+						if (tags.length === 0) {
+							throw new NodeOperationError(this.getNode(), 'At least one tag is required', { itemIndex: i });
+						}
+						for (const [label, values] of [['Lead IDs', ids], ['Emails', emails], ['Tags', tags]] as const) {
+							if (values.length > 50) {
+								throw new NodeOperationError(this.getNode(), `${label} accepts at most 50 values (got ${values.length})`, { itemIndex: i });
+							}
+						}
+
+						// The API rejects a bare string for any of these lists, so they always go as arrays.
+						const body: IDataObject = { tags };
+						if (ids.length > 0) {
+							body.ids = ids;
+						}
+						if (emails.length > 0) {
+							body.emails = emails;
+						}
+						if (additionalFields.tagsDate) {
+							body.tagsDate = toSecondsPrecision(additionalFields.tagsDate);
+						}
+
+						const responseData = await hyrosApiRequest.call(this, 'POST', '/leads/tags', body);
+						returnData.push(responseData as IDataObject);
 
 					} else if (operation === 'getJourney') {
 						// An expression like {{ $json.id }} can resolve to undefined at runtime
@@ -561,6 +580,12 @@ export class Hyros implements INodeType {
 						}
 						if (filters.toDate) {
 							qs.toDate = filters.toDate;
+						}
+						// Incremental sync: filters on the last-update date instead of the creation date.
+						for (const key of ['updatedFromDate', 'updatedToDate']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
 						}
 						if (filters.pageId) {
 							qs.pageId = filters.pageId;
@@ -773,6 +798,12 @@ export class Hyros implements INodeType {
 						if (filters.toDate) {
 							qs.toDate = filters.toDate;
 						}
+						// Incremental sync: filters on the last-update date instead of the creation date.
+						for (const key of ['updatedFromDate', 'updatedToDate']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
 						if (filters.pageSize) {
 							qs.pageSize = filters.pageSize;
 						}
@@ -898,6 +929,12 @@ export class Hyros implements INodeType {
 							// The API's query parameter is snake_case, unlike every other one.
 							qs.lead_stage = additionalFields.leadStage;
 						}
+						// Both default to false on the API side, so only an enabled switch is sent.
+						for (const key of ['excludeHardCosts', 'newestFirst']) {
+							if (additionalFields[key] === true) {
+								qs[key] = true;
+							}
+						}
 						if (additionalFields.timeGroupingOption) {
 							qs.timeGroupingOption = additionalFields.timeGroupingOption;
 						}
@@ -959,6 +996,12 @@ export class Hyros implements INodeType {
 							// is honored (verified live 2026-08-04). The UI field keeps the documented name so
 							// existing workflows keep working.
 							qs.adLevelDateGroupingOption = additionalFields.dateTimeGroupingOption;
+						}
+						// Both default to false on the API side, so only an enabled switch is sent.
+						for (const key of ['excludeHardCosts', 'reportSourceVisibility']) {
+							if (additionalFields[key] === true) {
+								qs[key] = true;
+							}
 						}
 						// pageSize/pageId are deliberately NOT forwarded: GET /attribution/ad-account
 						// documents no pagination and strict validation (v1.38) 400s on unknown params.
@@ -1525,6 +1568,34 @@ export class Hyros implements INodeType {
 						returnData.push(userInfo);
 					}
 
+				} else if (resource === 'conversionPath') {
+					// CONVERSION PATH OPERATIONS
+					if (operation === 'getAll') {
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+						const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
+						const qs: IDataObject = {
+							conversionType: this.getNodeParameter('conversionType', i),
+						};
+						for (const key of ['fromDate', 'toDate', 'pageId']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
+						}
+						// 0 is the API default (no window), so only a positive value is sent.
+						if (filters.windowAttributionDaysRange) {
+							qs.windowAttributionDaysRange = filters.windowAttributionDaysRange;
+						}
+
+						if (returnAll) {
+							const responseData = await hyrosApiRequestAllItems.call(this, 'GET', '/conversion-paths', {}, qs);
+							returnData.push(...responseData);
+						} else {
+							qs.pageSize = this.getNodeParameter('limit', i, 50) as number;
+							const responseData = await hyrosApiRequest.call(this, 'GET', '/conversion-paths', {}, qs);
+							returnData.push(...((responseData as any).result || []));
+						}
+					}
+
 				} else if (resource === 'keyword') {
 					// KEYWORD OPERATIONS
 					if (operation === 'get') {
@@ -1583,6 +1654,12 @@ export class Hyros implements INodeType {
 						}
 						if (filters.toDate) {
 							qs.toDate = filters.toDate;
+						}
+						// Incremental sync: filters on the last-update date instead of the creation date.
+						for (const key of ['updatedFromDate', 'updatedToDate']) {
+							if (filters[key]) {
+								qs[key] = filters[key];
+							}
 						}
 						if (filters.pageSize) {
 							qs.pageSize = filters.pageSize;

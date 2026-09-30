@@ -5,6 +5,7 @@ import {
 	IDataObject,
 	IHttpRequestMethods,
 	IHttpRequestOptions,
+	JsonObject,
 	NodeApiError,
 } from 'n8n-workflow';
 
@@ -49,8 +50,11 @@ export async function hyrosApiRequest(
 				const errorText = await response.text();
 				throw new Error(`HTTP ${response.status}: ${errorText}`);
 			}
-			return await response.json();
+			return assertNotErrorBody.call(this, await response.json());
 		} catch (error) {
+			if (error instanceof NodeApiError) {
+				throw error;
+			}
 			throw new NodeApiError(this.getNode(), error as any);
 		}
 	}
@@ -76,10 +80,73 @@ export async function hyrosApiRequest(
 	}
 
 	try {
-		return await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
+		const responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
+		return assertNotErrorBody.call(this, responseData);
 	} catch (error) {
+		if (error instanceof NodeApiError) {
+			throw error;
+		}
 		throw new NodeApiError(this.getNode(), error as any);
 	}
+}
+
+/**
+ * Hyros reports failures as `{ result: 'ERROR', message: [...] }`. Every error seen live comes
+ * with a 4xx status, but Zapier and Make both hit responses where that body arrived with a 200
+ * (HMCP-243), so a 200 carrying it is surfaced as a failure instead of passing as success.
+ */
+function assertNotErrorBody(
+	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
+	responseData: unknown,
+): unknown {
+	const body = responseData as IDataObject | null;
+	if (body && typeof body === 'object' && body.result === 'ERROR') {
+		const messages = Array.isArray(body.message) ? body.message : [body.message];
+		const text = messages.filter((m) => m !== undefined && m !== null).join('; ');
+		throw new NodeApiError(this.getNode(), body as JsonObject, {
+			message: text || 'The Hyros API returned an error',
+		});
+	}
+	return responseData;
+}
+
+/**
+ * tagsDate and leadStage.date reject fractional seconds ("Invalid date format.", verified live),
+ * which is exactly what an expression like {{ $now.toISO() }} produces. Drop them, keep the rest.
+ */
+export function toSecondsPrecision(value: unknown): string {
+	return String(value).replace(/(T\d{2}:\d{2}:\d{2})\.\d+/, '$1');
+}
+
+/** Split a comma-separated UI value into trimmed, non-empty entries. */
+export function splitCsv(value: unknown): string[] {
+	return String(value ?? '')
+		.split(',')
+		.map((entry) => entry.trim())
+		.filter((entry) => entry.length > 0);
+}
+
+// GET /leads and GET /leads/aggregation take list filters as quoted, comma-separated values.
+const quoteList = (values: string[]): string => values.map((v) => `"${v}"`).join(',');
+
+/**
+ * Query string for the lead search filters shared by GET /leads and GET /leads/aggregation.
+ * Page ID is not part of it: /leads/aggregation rejects it as an unknown parameter.
+ */
+export function buildLeadSearchQs(filters: IDataObject): IDataObject {
+	const qs: IDataObject = {};
+	for (const key of ['emails', 'ids', 'tags', 'phones', 'stage']) {
+		const values = splitCsv(filters[key]);
+		if (values.length > 0) {
+			qs[key] = quoteList(values);
+		}
+	}
+	for (const key of ['tagFromDate', 'tagToDate', 'fromDate', 'toDate', 'updatedFromDate', 'updatedToDate']) {
+		if (filters[key]) {
+			qs[key] = filters[key];
+		}
+	}
+	return qs;
 }
 
 export async function hyrosApiRequestAllItems(
