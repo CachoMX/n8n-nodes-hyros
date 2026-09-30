@@ -137,7 +137,8 @@ export class Hyros implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Hyros',
 		name: 'hyros',
-		icon: 'file:hyros.svg',
+		// The mark sits on a solid brand-colour tile, so one file reads well on both themes.
+		icon: { light: 'file:hyros.svg', dark: 'file:hyros.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',

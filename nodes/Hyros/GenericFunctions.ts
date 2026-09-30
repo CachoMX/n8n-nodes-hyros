@@ -32,6 +32,7 @@ export async function hyrosApiRequest(
 	// Use native fetch to bypass n8n's request layer entirely for this case.
 	// IMPORTANT: Build query string manually — URL.searchParams encodes @ to %40 which Hyros rejects.
 	if (method === 'PUT' && Object.keys(body).length > 0 && Object.keys(qs).length > 0) {
+		let fetchedBody: unknown;
 		try {
 			const queryString = Object.entries(qs).map(([k, v]) => `${k}=${v}`).join('&');
 			const fetchHeaders: Record<string, string> = {
@@ -50,13 +51,12 @@ export async function hyrosApiRequest(
 				const errorText = await response.text();
 				throw new Error(`HTTP ${response.status}: ${errorText}`);
 			}
-			return assertNotErrorBody.call(this, await response.json());
+			fetchedBody = await response.json();
 		} catch (error) {
-			if (error instanceof NodeApiError) {
-				throw error;
-			}
 			throw new NodeApiError(this.getNode(), error as any);
 		}
+		// Checked outside the try so the NodeApiError it throws is not re-wrapped.
+		return assertNotErrorBody.call(this, fetchedBody);
 	}
 
 	const options: IHttpRequestOptions = {
@@ -79,15 +79,14 @@ export async function hyrosApiRequest(
 		delete options.qs;
 	}
 
+	let responseData: unknown;
 	try {
-		const responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
-		return assertNotErrorBody.call(this, responseData);
+		responseData = await this.helpers.httpRequestWithAuthentication.call(this, 'hyrosApi', options);
 	} catch (error) {
-		if (error instanceof NodeApiError) {
-			throw error;
-		}
 		throw new NodeApiError(this.getNode(), error as any);
 	}
+	// Checked outside the try so the NodeApiError it throws is not re-wrapped.
+	return assertNotErrorBody.call(this, responseData);
 }
 
 /**

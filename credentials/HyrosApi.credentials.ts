@@ -10,7 +10,8 @@ export class HyrosApi implements ICredentialType {
 	name = 'hyrosApi';
 	displayName = 'Hyros API';
 	documentationUrl = 'https://docs.hyros.com/';
-	icon: Icon = 'file:../nodes/Hyros/hyros.svg';
+	// The mark sits on a solid brand-colour tile, so one file reads well on both themes.
+	icon: Icon = { light: 'file:../nodes/Hyros/hyros.svg', dark: 'file:../nodes/Hyros/hyros.svg' };
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',

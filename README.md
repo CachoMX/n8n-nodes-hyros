@@ -232,7 +232,11 @@ Other documented limitations:
 
 ## Version History
 
-### 3.1.0 (Current)
+### 3.1.1 (Current)
+- **Passes the n8n community package scanner again.** 3.1.0 was flagged by the scanner's `require-node-api-error` rule for re-throwing an error it had already wrapped; the API error check now runs outside the try block, with the same behaviour.
+- **Themed icon.** The node and credential declare light and dark icon variants (the same Hyros tile, which reads well on both themes).
+
+### 3.1.0
 - **Matches Hyros API v1.43.** Every addition below was verified against a live account before shipping.
 - **New resource: Conversion Paths.** `GET /conversion-paths` returns the sales, calls or leads of a date range, each with the ordered source touches it was attributed with, so you can run your own attribution model (weights, decay, exclusions) over Hyros data. Includes an attribution window in days and full pagination.
 - **Lead: Add Tags.** `POST /leads/tags` applies the same tags to up to 50 lead IDs and 50 emails in one call, with an optional Tags Date to backdate them. Poll the returned request_id with Request Status to see the tagged leads.
